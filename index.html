@@ -8426,19 +8426,37 @@ Views.attendance = {
       if (r && r.ok) openModal({ title: '📊 Session attendance', wide: true, body: this.reportCard(r.session, r.records, false) });
       else toast('Could not load this session: ' + ((r && r.error) || ''), 'bad');
     };
+    const deleteSession = async (s, btn) => {
+      if (s.status === 'active') { toast('This session is still open — close attendance first, then delete it.', 'warn'); return; }
+      const ok = await confirmDialog('Delete the attendance session “' + s.sessionTitle + '” (' + fmtDate(s.createdAt) + ') and all ' + s.present + ' check-in record' + (s.present === 1 ? '' : 's') + '? This cannot be undone. Its Google Drive report copy, if any, is moved to your Drive trash.', { danger: true, okLabel: 'Delete session' });
+      if (!ok) return;
+      btn.disabled = true; btn.textContent = 'Deleting…';
+      const r = await Backend.authedPost({ action: 'deleteAttendanceSession', sessionId: s.sessionId });
+      if (!(r && r.ok)) {
+        btn.disabled = false; btn.textContent = '🗑 Delete';
+        const e = (r && r.error) || '';
+        toast(/Unknown action/i.test(e) ? 'Your backend needs the updated Code.gs to delete sessions — paste it and deploy a new version.' : 'Could not delete: ' + (e || 'no response from the server.'), 'bad', 8000);
+        return;
+      }
+      this.hist = (this.hist || []).filter(x => x.sessionId !== s.sessionId);
+      if (this.report && this.report.session && this.report.session.sessionId === s.sessionId) this.report = null;
+      toast('Session deleted' + (r.deletedRecords ? ' (' + r.deletedRecords + ' check-in record' + (r.deletedRecords === 1 ? '' : 's') + ')' : '') + (r.driveTrashed ? ' · Drive copy moved to trash.' : '.'), 'ok');
+      this.render();
+    };
     const paint = () => {
       clear(listBox);
       const qn = normText(q.value);
       const rows = this.hist.filter(s => !qn || normText([s.academicYear, s.course, s.chapter, s.sessionTitle].join(' ')).includes(qn));
       listBox.appendChild(el('table', { class: 'data-table' },
-        el('thead', null, el('tr', null, ['Academic year', 'Course', 'Chapter', 'Session', 'Teacher', 'Date', 'Present', 'Status', 'Drive', ''].map(h => el('th', null, h)))),
+        el('thead', null, el('tr', null, ['Academic year', 'Course', 'Chapter', 'Session', 'Teacher', 'Date', 'Present', 'Status', 'Drive', '', ''].map(h => el('th', null, h)))),
         el('tbody', null, rows.map(s => el('tr', null,
           el('td', null, s.academicYear || '—'), el('td', null, s.course || '—'), el('td', null, s.chapter || '—'), el('td', null, s.sessionTitle),
           el('td', null, s.teacher || '—'), el('td', null, fmtDate(s.createdAt).split(' ').slice(0, 3).join(' ')), el('td', null, String(s.present)),
           el('td', null, el('span', { class: 'badge ' + (s.status === 'active' ? 'ok' : 'muted') }, s.status === 'active' ? 'active' : 'closed')),
           el('td', null, s.driveStatus === 'synced' ? '☁✓' : s.driveStatus === 'failed' ? '☁⚠' : '—'),
-          el('td', null, el('button', { class: 'btn btn-xs', onclick: () => openSession(s.sessionId) }, 'View'))))
-          .concat(rows.length ? [] : [el('tr', null, el('td', { colspan: '9', class: 'center muted' }, 'No sessions match this filter.'))]))));
+          el('td', null, el('button', { class: 'btn btn-xs', onclick: () => openSession(s.sessionId) }, 'View')),
+          el('td', null, el('button', { class: 'btn btn-xs btn-danger', disabled: s.status === 'active', title: s.status === 'active' ? 'Close attendance first' : 'Delete this session and its check-in records', onclick: (e) => deleteSession(s, e.currentTarget) }, '🗑 Delete'))))
+          .concat(rows.length ? [] : [el('tr', null, el('td', { colspan: '11', class: 'center muted' }, 'No sessions match this filter.'))]))));
     };
     q.addEventListener('input', debounce(paint, 200));
     box.appendChild(q); box.appendChild(listBox);
