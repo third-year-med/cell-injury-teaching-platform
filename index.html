@@ -3134,7 +3134,16 @@ function LE_createService(store) {
         var mems = memberships(module, a); var byMod = {}; mems.forEach(function (m) { byMod[m.module] = m; });
         var ids = Array.isArray(p.ids) ? p.ids.map(String) : [];
         var seq = store.currentSeq(); var touched = {};
-        if (p.all) { (p.allModules ? mems : mems.filter(function (m) { return m.module === module; })).forEach(function (m) { m.readUpTo = seq; m.readIds = []; touched[m.module] = m; }); }
+        if (p.all) {
+          (p.allModules ? mems : mems.filter(function (m) { return m.module === module; })).forEach(function (m) {
+            // Messages saved before the delta-sync/notifications rebuild have no seq/ord (blank column), so
+            // "n.seq <= readUpTo" can never mark them read on its own — remember their notification ids here
+            // explicitly, otherwise "mark all read" would leave a handful of old messages perpetually unread.
+            var legacy = msgsOf(m.module).filter(function (x) { return !x.deleted && !(x.ord || x.seq); })
+              .map(function (x) { var n = LE_notifFor(x, m, ''); return n ? n.id : null; }).filter(Boolean);
+            m.readUpTo = seq; m.readIds = legacy.slice(-400); touched[m.module] = m;
+          });
+        }
         ids.forEach(function (id) {
           var msgId = id.split(':')[0]; var msg = null, all = store.messages();
           for (var i = 0; i < all.length; i++) if (all[i].id === msgId) { msg = all[i]; break; }
