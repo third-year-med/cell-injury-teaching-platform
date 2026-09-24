@@ -8328,8 +8328,31 @@ Views.attendance = {
     if (r.report.session.driveStatus === 'failed') toast('⚠ Google Drive sync failed — attendance is safe in the database. Details and “Retry sync” are in the report below.', 'warn', 8000);
   },
 
+  /** End ANY open session by id — including one this browser is not tracking (started on another device,
+   *  from the other group's link, or before a page update), which otherwise had no Close button anywhere. */
+  async endSessionById(s, onDone) {
+    if (!(await confirmDialog('End attendance for “' + s.sessionTitle + '”? Students can no longer check in with its QR code or link.', { danger: true, okLabel: 'End session' }))) return;
+    const r = await Backend.authedPost({ action: 'closeAttendanceSession', sessionId: s.sessionId }, { timeout: 60000 });
+    if (!(r && r.ok)) { toast('Could not end the session: ' + ((r && r.error) || 'no response from the server.'), 'bad', 8000); return; }
+    if (AttT.sessionId === s.sessionId) { AttT.stopPolling(); AttT.sessionId = null; AttT.token = null; AttT.state = null; AttT.save(); }
+    if (onDone) onDone();
+    this.report = r.report; this.hist = null;
+    this.render();
+    toast('Session ended — ' + (r.report.records || []).length + ' students recorded.', 'ok');
+    if (r.report.session.driveStatus === 'failed') toast('⚠ Google Drive sync failed — attendance is safe in the database. Details and “Retry sync” are in the report below.', 'warn', 8000);
+  },
+  /** Bring an open session's QR code / link back up in this browser. */
+  resumeSession(s, onDone) {
+    AttT.stopPolling();
+    AttT.sessionId = s.sessionId; AttT.token = null; AttT.state = null; AttT.showCode = true; AttT.save();
+    this.report = null;
+    if (onDone) onDone();
+    AttT.startPolling(); // the first poll fetches the QR token, then the session panel redraws
+    this.render();
+  },
+
   /* ---------------- Report / export / print ---------------- */
-  reportCard(s, records, dismissable) {
+  reportCard(s, records, dismissable, closeModal) {
     const drive = s.driveStatus === 'synced' ? el('span', { class: 'msg ok', style: 'display:inline-block' }, '☁ Synced to Google Drive — ', el('a', { href: s.driveUrl, target: '_blank', rel: 'noopener' }, 'open sheet ↗'))
       : s.driveStatus === 'failed' ? el('div', { class: 'msg warn', style: 'display:inline-block' }, '⚠ Drive sync failed (attendance is safe in the database). ', el('button', { class: 'btn btn-xs', onclick: async (e) => { e.target.disabled = true; e.target.textContent = 'Syncing…'; const r = await Backend.authedPost({ action: 'retrySyncAttendance', sessionId: s.sessionId }, { timeout: 60000 }); if (r && r.ok) { toast('✓ Synced to Drive.', 'ok'); s.driveStatus = 'synced'; s.driveUrl = r.driveUrl; s.driveError = ''; this.hist = null; this.render(); } else { s.driveError = (r && r.error) || s.driveError; e.target.disabled = false; e.target.textContent = 'Retry sync'; toast('Still could not sync: ' + ((r && r.error) || ''), 'bad', 9000); } } }, 'Retry sync'),
           s.driveError ? el('div', { class: 'small', style: 'margin-top:.3rem;white-space:normal' }, 'Reason: ' + s.driveError) : null)
@@ -8339,6 +8362,10 @@ Views.attendance = {
         dismissable ? el('button', { class: 'btn btn-sm', onclick: () => { this.report = null; this.render(); } }, 'Dismiss') : null),
       el('p', { class: 'small muted' }, (s.course || '') + (s.chapter ? ' — ' + s.chapter : '') + (s.academicYear ? ' · ' + s.academicYear : '') + (s.teacher ? ' · ' + s.teacher : '')),
       el('div', { class: 'stat-cards mt1' }, [['Present', records.length], ['Started', fmtDate(s.createdAt)], ['Ended', s.endedAt ? fmtDate(s.endedAt) : '—']].map(([k, v]) => el('div', { class: 'stat' }, el('div', { class: 'v' }, String(v)), el('div', { class: 'k' }, k)))),
+      s.status === 'active' ? el('div', { class: 'msg info mt1', style: 'display:flex;flex-wrap:wrap;gap:.5rem;align-items:center' },
+        el('span', null, '🟢 This session is still open — students can still check in.'),
+        el('button', { class: 'btn btn-sm', onclick: () => this.resumeSession(s, closeModal) }, '▶ Resume (show QR)'),
+        el('button', { class: 'btn btn-sm btn-danger', onclick: () => this.endSessionById(s, closeModal) }, '⏹ End session')) : null,
       el('div', { class: 'mt1' }, drive),
       el('div', { class: 'row mt1' },
         el('button', { class: 'btn btn-sm btn-primary', disabled: !records.length, onclick: () => this.exportCSV(s, records) }, '⤓ Export to Excel (CSV)'),
@@ -8423,7 +8450,7 @@ Views.attendance = {
     const listBox = el('div', { class: 'table-scroll mt1' });
     const openSession = async (sid) => {
       const r = await Backend.authedPost({ action: 'getAttendanceSessionReport', sessionId: sid });
-      if (r && r.ok) openModal({ title: '📊 Session attendance', wide: true, body: this.reportCard(r.session, r.records, false) });
+      if (r && r.ok) { let m = null; const body = this.reportCard(r.session, r.records, false, () => m && m.close()); m = openModal({ title: '📊 Session attendance', wide: true, body }); }
       else toast('Could not load this session: ' + ((r && r.error) || ''), 'bad');
     };
     const deleteSession = async (s, btn) => {
@@ -8455,7 +8482,9 @@ Views.attendance = {
           el('td', null, el('span', { class: 'badge ' + (s.status === 'active' ? 'ok' : 'muted') }, s.status === 'active' ? 'active' : 'closed')),
           el('td', null, s.driveStatus === 'synced' ? '☁✓' : s.driveStatus === 'failed' ? '☁⚠' : '—'),
           el('td', null, el('button', { class: 'btn btn-xs', onclick: () => openSession(s.sessionId) }, 'View')),
-          el('td', null, el('button', { class: 'btn btn-xs btn-danger', disabled: s.status === 'active', title: s.status === 'active' ? 'Close attendance first' : 'Delete this session and its check-in records', onclick: (e) => deleteSession(s, e.currentTarget) }, '🗑 Delete'))))
+          el('td', null, s.status === 'active'
+            ? el('button', { class: 'btn btn-xs btn-danger', title: 'End this open session (you can delete it afterwards)', onclick: () => this.endSessionById(s) }, '⏹ End')
+            : el('button', { class: 'btn btn-xs btn-danger', title: 'Delete this session and its check-in records', onclick: (e) => deleteSession(s, e.currentTarget) }, '🗑 Delete'))))
           .concat(rows.length ? [] : [el('tr', null, el('td', { colspan: '11', class: 'center muted' }, 'No sessions match this filter.'))]))));
     };
     q.addEventListener('input', debounce(paint, 200));
