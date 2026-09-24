@@ -1184,8 +1184,14 @@ const TEACHER_SVG = '<svg viewBox="0 0 24 24" width="1em" height="1em" fill="non
 function teacherIcon(extraClass) { const s = document.createElement('span'); s.className = 'ico-teacher' + (extraClass ? ' ' + extraClass : ''); s.setAttribute('aria-hidden', 'true'); s.innerHTML = TEACHER_SVG; return s; }
 
 const CFG = Object.assign({ backendUrl: '' }, window.NEO_CONFIG || {});
-const PFX = COURSE.storagePrefix || 'ci_';
-const MODULE_KEY = COURSE.moduleKey || 'cellinjury';
+/** Optional class/section split: ?g=<A-Za-z0-9_-, max 24 chars> in the URL sends this browser to its own
+ *  backend module ("<base>-<g>") and its own local-storage namespace, without touching the plain link
+ *  (no ?g= → the original module/storage, so existing data for that group is untouched). Every backend
+ *  collection (chat, rosters, quiz/assessment results, classroom + quiz passwords) is already scoped by
+ *  module server-side, so this alone fully separates two groups sharing one platform + one backend. */
+const GROUP_TAG = (() => { try { const m = /[?&]g=([A-Za-z0-9_-]{1,24})/.exec(location.search); return m ? m[1] : ''; } catch (e) { return ''; } })();
+const PFX = (COURSE.storagePrefix || 'ci_') + (GROUP_TAG ? GROUP_TAG + '_' : '');
+const MODULE_KEY = (COURSE.moduleKey || 'cellinjury') + (GROUP_TAG ? '-' + GROUP_TAG : '');
 const AUTHOR = COURSE.author;
 
 /* ---------- DOM helpers ---------- */
