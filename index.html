@@ -3464,7 +3464,7 @@ const VIEW_LIST = [
   { id: 'study', label: 'Study Tools', icon: '🧰' },
   { id: 'cases', label: 'Cases', icon: '🩺' },
   { id: 'live', label: 'Live', icon: '🔴' },
-  { id: 'attendance', label: 'Attendance', icon: '📋' },
+  { id: 'attendance', label: 'Attendance', icon: '📋', hidden: true }, // teacher UI lives in Teacher Portal → Data → Attendance; this route is only the students' QR check-in page
   { id: 'teacher', label: 'Teacher', icon: 'svg:teacher' },
 ];
 const Router = {
@@ -3520,7 +3520,7 @@ function refreshAllContentViews() {
 function buildNav() {
   const nav = document.getElementById('app-nav');
   clear(nav);
-  VIEW_LIST.forEach(v => nav.appendChild(el('button', {
+  VIEW_LIST.filter(v => !v.hidden).forEach(v => nav.appendChild(el('button', {
     class: 'nav-btn', dataset: { view: v.id }, type: 'button', title: v.label,
     onclick: () => Router.go(v.id, v.id === 'explain' ? (Store.get('ui_topic_v1') ? [Store.get('ui_topic_v1')] : []) : [])
   }, (v.icon === 'svg:teacher' ? teacherIcon('nav-ico') : el('span', { 'aria-hidden': 'true' }, v.icon)), el('span', { class: 'nl' }, v.label), el('span', { class: 'nb hidden', id: 'nb-' + v.id }))));
@@ -5303,7 +5303,6 @@ Views.present = {
     bar.appendChild(el('button', { class: 'btn btn-sm' + (this.overview ? ' btn-primary' : ''), onclick: () => this.toggleOverview() }, '▦ Overview'));
     bar.appendChild(el('button', { class: 'btn btn-sm' + (this.showNotes ? ' btn-primary' : ''), onclick: () => { this.showNotes = !this.showNotes; this.renderNotes(); this.renderToolbar(); this.fit(); } }, '🗒 Notes'));
     bar.appendChild(el('button', { class: 'btn btn-sm', onclick: () => this.toggleFullscreen() }, fsOn ? '⤫ Exit fullscreen' : '⛶ Fullscreen'));
-    bar.appendChild(el('button', { class: 'btn btn-sm' + (AttT.active() ? ' btn-navy' : ''), onclick: () => Router.go('attendance'), title: 'Start or manage this session’s QR attendance' }, AttT.active() ? '📋 Attendance ●' : '📋 Attendance'));
     if (s && s.type === 'question') {
       bar.appendChild(el('button', { class: 'btn btn-sm btn-primary', onclick: () => this.toggleReveal() }, this.revealed[s.id] ? '🙈 Hide answer' : '👁 Reveal answer'));
       bar.appendChild(el('button', { class: 'btn btn-sm', onclick: () => { delete this.polls[s.id]; Store.set('poll_v1', this.polls); this.renderSlide(); }, title: 'Reset the show-of-hands tally' }, '↺ Tally'));
@@ -8119,6 +8118,9 @@ function attendanceJoinUrl(token) {
   return location.href.split('#')[0] + '#att=' + encodeURIComponent(token) + '&b=' + encodeURIComponent(Backend.url());
 }
 
+/** True while Teacher Portal → Attendance is the tab on screen (the only place the teacher attendance UI lives). */
+function attTeacherVisible() { return Router.current === 'teacher' && Views.teacher && Views.teacher.tab === 'attendance' && Auth.isTeacher(); }
+
 const AttT = { // teacher's current session
   // The QR token only ever lives in memory once a session starts (kept out of the shared
   // attSessionPublic_ payload the unauthenticated student endpoint also uses), so it must be
@@ -8138,11 +8140,12 @@ const AttT = { // teacher's current session
     const r = await Backend.authedPost({ action: 'getAttendanceTeacherState', sessionId: this.sessionId }, { timeout: 12000 });
     if (r && r.ok) {
       const gotToken = !this.token && r.session && r.session.token;
+      const firstState = !this.state; // the header (session title, course…) was drawn before any state arrived
       this.state = r;
       if (gotToken) { this.token = r.session.token; this.save(); }
-      if (Router.current === 'attendance') { if (gotToken) Views.attendance.render(); else Views.attendance.paintTeacher(); }
+      if (attTeacherVisible()) { if (gotToken || firstState) Views.attendance.render(); else Views.attendance.paintTeacher(); }
     }
-    else if (r && r.code === 'notfound') { this.sessionId = null; this.token = null; this.save(); this.stopPolling(); if (Router.current === 'attendance') Views.attendance.render(); }
+    else if (r && r.code === 'notfound') { this.sessionId = null; this.token = null; this.save(); this.stopPolling(); if (attTeacherVisible()) Views.attendance.render(); }
   }
 };
 
@@ -8150,26 +8153,28 @@ Views.attendance = {
   checkinToken: '', checkinInfo: null, checkinErr: '', checkinDone: null,
   hist: null, settings: null, report: null,
   show() {
+    // #/attendance is the students' QR check-in page. Teachers manage attendance in Teacher Portal → Data → Attendance.
+    if (!this.checkinToken) { setTimeout(() => Router.go('teacher', ['attendance'], { replace: true }), 0); return; }
     this.render();
-    if (AttT.sessionId && Backend.isAuthed() && !AttT.timer) AttT.startPolling();
   },
   refresh() { this.render(); },
   render() {
-    const v = clear(document.getElementById('view-attendance'));
-    const page = el('div', { class: 'page page-wide' }); v.appendChild(page);
+    if (this.checkinToken) {
+      const v = clear(document.getElementById('view-attendance'));
+      const page = el('div', { class: 'page page-wide' }); v.appendChild(page);
+      this.page = page; this.renderCheckin(page); return;
+    }
+    if (attTeacherVisible()) Views.teacher.render(); // re-renders the portal, which calls renderTeacherInto(box)
+  },
+  /** Teacher attendance UI, drawn inside Teacher Portal → Data → Attendance (the portal already requires sign-in). */
+  renderTeacherInto(page) {
     this.page = page;
-    if (this.checkinToken) { this.renderCheckin(page); return; }
-    page.appendChild(sectionTitleBlock('📋 Attendance', 'Session-based QR attendance — every teaching session gets its own new QR code, never reused, even within the same chapter.'));
+    if (AttT.sessionId && Backend.isAuthed() && !AttT.timer) AttT.startPolling();
+    page.appendChild(el('p', { class: 'small muted' }, 'Session-based QR attendance — every teaching session gets its own new QR code and link, never reused, even within the same chapter.'));
     if (!Backend.isConfigured()) {
       page.appendChild(el('div', { class: 'card' }, el('h3', null, '☁ Attendance needs the free backend'),
         el('p', null, 'Students check in from their own phone, so attendance needs your Google Apps Script backend the same way Live Classroom does. Connect it once in Teacher Portal → ☁ Backend & sharing (see SETUP.md).'),
         el('button', { class: 'btn', onclick: () => Router.go('teacher', ['backend']) }, 'Open backend settings')));
-      return;
-    }
-    if (!Auth.isTeacher()) {
-      page.appendChild(el('div', { class: 'card' }, el('h3', null, '🔐 Teacher sign-in required'),
-        el('p', { class: 'small muted' }, 'Only teachers start and manage attendance sessions. If your teacher gave you a check-in link or QR code, open that instead — it takes you straight to check-in.'),
-        el('button', { class: 'btn btn-primary', onclick: async () => { if (await Auth.ensure('Starting attendance is for teachers.')) this.render(); } }, 'Teacher sign-in')));
       return;
     }
     if (AttT.active()) { this.renderTeacherSession(page); return; }
@@ -8275,19 +8280,20 @@ Views.attendance = {
 
   /* ---------------- Teacher: active session panel ---------------- */
   renderTeacherSession(page) {
-    const code = AttT.code || (AttT.state && AttT.state.session.code) || '……';
     const S = AttT.state && AttT.state.session;
+    const link = AttT.token ? attendanceJoinUrl(AttT.token) : '';
     const qr = el('div', { class: 'qr-box' }, el('span', { class: 'small muted' }, 'QR…'));
-    if (AttT.token && AttT.showCode) renderQRInto(qr, attendanceJoinUrl(AttT.token));
+    if (link && AttT.showCode) renderQRInto(qr, link);
+    const linkBox = el('input', { type: 'text', readonly: true, value: link || 'Preparing link…', 'aria-label': 'Attendance check-in link', style: 'width:100%;max-width:460px;font-size:.85rem', onfocus: (e) => e.target.select() });
     const header = el('div', { class: 'card' },
       S ? el('div', { class: 'small muted' }, (S.course || '') + (S.chapter ? ' — ' + S.chapter : '') + (S.academicYear ? ' · ' + S.academicYear : '')) : null,
       el('h2', { style: 'margin:.1rem 0 .6rem' }, (S && S.sessionTitle) || 'Starting…'),
       el('div', { class: 'row between' },
         el('div', { class: 'join-panel', style: 'text-align:left' },
-          el('div', { class: 'small muted' }, 'Students scan the QR, or open the platform and check in with code'),
-          el('div', { class: 'live-code', id: 'att-code' }, AttT.showCode ? code : '••••••'),
+          el('div', { class: 'small muted' }, 'Students scan the QR code, or open the attendance link:'),
+          el('div', { style: 'margin:.35rem 0' }, linkBox),
           el('div', { class: 'small', id: 'att-count', style: 'margin-top:.4rem' }, (AttT.state ? AttT.state.records.length : 0) + ' checked in so far'),
-          location.protocol === 'file:' ? el('div', { class: 'small muted', style: 'max-width:420px;margin-top:.3rem' }, 'ℹ This page was opened from a file, so the QR link only works for students who have the file at the same location — everyone else can open their own copy and type the code.') : null),
+          location.protocol === 'file:' ? el('div', { class: 'small muted', style: 'max-width:420px;margin-top:.3rem' }, 'ℹ This page was opened from a file, so the QR code and link only work for students who have the file at the same location. Publish the platform online (e.g. GitHub Pages) for students to check in from their phones.') : null),
         AttT.showCode ? qr : el('div', { class: 'qr-box', style: 'display:grid;place-items:center' }, el('span', { class: 'small muted' }, 'QR hidden')),
         el('div', { class: 'stack' },
           el('button', { class: 'btn', onclick: () => { AttT.showCode = !AttT.showCode; this.render(); } }, AttT.showCode ? '🙈 Hide QR' : '👁 Show QR'),
@@ -8315,16 +8321,18 @@ Views.attendance = {
     if (!(r && r.ok)) { toast('Could not close: ' + ((r && r.error) || ''), 'bad'); return; }
     AttT.stopPolling();
     this.report = r.report;
-    AttT.sessionId = null; AttT.state = null; AttT.save();
+    AttT.sessionId = null; AttT.token = null; AttT.state = null; AttT.save();
+    this.hist = null; // history list now includes the session just closed
     this.render();
     toast('Attendance closed — ' + (r.report.records || []).length + ' students recorded.', 'ok');
-    if (r.report.session.driveStatus === 'failed') toast('⚠ Google Drive sync failed — attendance is safe in the database; retry from the report below.', 'warn', 7000);
+    if (r.report.session.driveStatus === 'failed') toast('⚠ Google Drive sync failed — attendance is safe in the database. Details and “Retry sync” are in the report below.', 'warn', 8000);
   },
 
   /* ---------------- Report / export / print ---------------- */
   reportCard(s, records, dismissable) {
     const drive = s.driveStatus === 'synced' ? el('span', { class: 'msg ok', style: 'display:inline-block' }, '☁ Synced to Google Drive — ', el('a', { href: s.driveUrl, target: '_blank', rel: 'noopener' }, 'open sheet ↗'))
-      : s.driveStatus === 'failed' ? el('span', { class: 'msg warn', style: 'display:inline-block' }, '⚠ Drive sync failed (attendance is safe in the database). ', el('button', { class: 'btn btn-xs', onclick: async () => { const r = await Backend.authedPost({ action: 'retrySyncAttendance', sessionId: s.sessionId }); if (r && r.ok) { toast('✓ Synced to Drive.', 'ok'); s.driveStatus = 'synced'; s.driveUrl = r.driveUrl; this.render(); } else toast('Still could not sync: ' + ((r && r.error) || ''), 'bad'); } }, 'Retry sync'))
+      : s.driveStatus === 'failed' ? el('div', { class: 'msg warn', style: 'display:inline-block' }, '⚠ Drive sync failed (attendance is safe in the database). ', el('button', { class: 'btn btn-xs', onclick: async (e) => { e.target.disabled = true; e.target.textContent = 'Syncing…'; const r = await Backend.authedPost({ action: 'retrySyncAttendance', sessionId: s.sessionId }, { timeout: 60000 }); if (r && r.ok) { toast('✓ Synced to Drive.', 'ok'); s.driveStatus = 'synced'; s.driveUrl = r.driveUrl; s.driveError = ''; this.hist = null; this.render(); } else { s.driveError = (r && r.error) || s.driveError; e.target.disabled = false; e.target.textContent = 'Retry sync'; toast('Still could not sync: ' + ((r && r.error) || ''), 'bad', 9000); } } }, 'Retry sync'),
+          s.driveError ? el('div', { class: 'small', style: 'margin-top:.3rem;white-space:normal' }, 'Reason: ' + s.driveError) : null)
       : el('span', { class: 'small muted' }, 'Not yet synced to Drive.');
     return el('div', { class: 'card mt2' },
       el('div', { class: 'row between' }, el('h3', { style: 'margin:0' }, '📊 ' + s.sessionTitle),
@@ -8383,7 +8391,7 @@ Views.attendance = {
   settingsCard() {
     const box = el('div', { class: 'card mt1' }, el('h3', null, '🏛 Institution details (used on printed/exported reports)'));
     if (!this.settings) {
-      Backend.authedPost({ action: 'getAttendanceSettings' }).then(r => { this.settings = (r && r.ok) ? r.settings : { university: '', faculty: '', department: '' }; this.render(); });
+      if (!this._settingsLoading) { this._settingsLoading = true; Backend.authedPost({ action: 'getAttendanceSettings' }).then(r => { this._settingsLoading = false; this.settings = (r && r.ok && r.settings) || { university: '', faculty: '', department: '' }; this.render(); }); }
       box.appendChild(el('div', { class: 'small muted' }, 'Loading…'));
       return box;
     }
@@ -8406,7 +8414,7 @@ Views.attendance = {
   historyCard() {
     const box = el('div', { class: 'card mt1' }, el('h3', null, '🗂 Session attendance history'));
     if (!this.hist) {
-      Backend.authedPost({ action: 'listAttendanceSessions' }).then(r => { this.hist = (r && r.ok) ? r.sessions : []; this.render(); });
+      if (!this._histLoading) { this._histLoading = true; Backend.authedPost({ action: 'listAttendanceSessions' }).then(r => { this._histLoading = false; this.hist = (r && r.ok && r.sessions) || []; this.render(); }); }
       box.appendChild(el('div', { class: 'small muted' }, 'Loading…'));
       return box;
     }
@@ -9881,11 +9889,11 @@ Bus.on('sync-status', () => { const old = document.querySelector('#view-study .s
    structure, question import, backend connection, backup, account)
    ========================================================================== */
 const PORTAL_TABS = [
-  ['results', '📊 Results'], ['insights', '📈 Study insights'], ['assessments', '📝 Assessments'], ['imported', '🗂 Question Bank'], ['import', '📥 Import questions'], ['importhistory', '📚 Import history'],
+  ['attendance', '📋 Attendance'], ['results', '📊 Results'], ['insights', '📈 Study insights'], ['assessments', '📝 Assessments'], ['imported', '🗂 Question Bank'], ['import', '📥 Import questions'], ['importhistory', '📚 Import history'],
   ['password', '🔑 Quiz password'], ['structure', '📚 Course structure'], ['backend', '☁ Backend & sharing'],
   ['backup', '💾 Backup'], ['account', '⚙ Account']
 ];
-const PORTAL_GROUPS = [['Data', ['results', 'insights', 'import', 'importhistory']], ['Teaching', ['assessments', 'imported', 'structure']], ['Administration', ['password', 'backend', 'backup', 'account']]];
+const PORTAL_GROUPS = [['Data', ['attendance', 'results', 'insights', 'import', 'importhistory']], ['Teaching', ['assessments', 'imported', 'structure']], ['Administration', ['password', 'backend', 'backup', 'account']]];
 Views.teacher = {
   tab: 'results', results: null, loadingResults: false,
   rf: { q: '', min: '', from: '', to: '', asm: '', sort: 'submittedAt', dir: -1 },
@@ -9906,7 +9914,7 @@ Views.teacher = {
     page.appendChild(el('nav', { class: 'tabs portal-tabs', 'aria-label': 'Teacher Portal sections' }, PORTAL_GROUPS.map(([gl, ids], gi) => el('div', { class: 'ptab-group', role: 'group', 'aria-label': gl },
       el('span', { class: 'ptab-label' }, gl), ids.map(id => PORTAL_TABS.find(t => t[0] === id)).filter(Boolean).map(tabBtn), gi === PORTAL_GROUPS.length - 1 ? extra.map(tabBtn) : null))));
     const box = el('div'); page.appendChild(box);
-    ({ results: () => this.tabResults(box), insights: () => Insights.render(box), password: () => this.tabPassword(box), structure: () => this.tabStructure(box), import: () => renderImportTab(box),
+    ({ attendance: () => Views.attendance.renderTeacherInto(box), results: () => this.tabResults(box), insights: () => Insights.render(box), password: () => this.tabPassword(box), structure: () => this.tabStructure(box), import: () => renderImportTab(box),
       assessments: () => AssessUI.render(box), imported: () => this.tabImported(box), importhistory: () => this.tabImportHistory(box), backend: () => this.tabBackend(box), backup: () => this.tabBackup(box), account: () => this.tabAccount(box) }[this.tab] || (() => { }))();
   },
   renderGate(page) {
