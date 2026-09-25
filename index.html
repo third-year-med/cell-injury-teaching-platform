@@ -838,6 +838,21 @@ body.pres-fs-on{overflow:hidden}
 .prac-hero .prac-h1{margin:.15rem 0 .2rem;font-size:1.6rem;color:var(--navy)}
 .prac-handout-bar{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;padding-top:.8rem;border-top:1px solid var(--line-2)}
 .prac-sec h2{font-size:1.05rem;margin:0 0 .6rem;color:var(--navy-2)}
+/* Practical resources — student view (active only) + teacher manager */
+.prac-res-group+.prac-res-group{margin-top:.9rem}
+.prac-res-group h3{font-size:.95rem;margin:0 0 .45rem;color:var(--navy-2)}
+.prac-res-item{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.45rem 0;border-top:1px solid var(--line-2)}
+.prac-res-item:first-of-type{border-top:0}
+.prac-res-item .t{font-weight:650}.prac-res-item .n{font-size:.85rem;color:var(--muted)}
+.prac-res-row{display:grid;grid-template-columns:auto minmax(0,11rem) minmax(0,1fr) minmax(0,1.4fr) auto;gap:.5rem;align-items:center;padding:.5rem .6rem;border:1px solid var(--line);border-radius:10px;margin-top:.45rem;background:#fff}
+.prac-res-row.off{background:var(--line-2);opacity:.7}
+.prac-res-row input,.prac-res-row select{width:100%;min-width:0}
+.prac-res-row .note{grid-column:2/-1}
+.prac-switch{display:inline-flex;align-items:center;gap:.4rem;font-weight:700;font-size:.85rem;cursor:pointer;white-space:nowrap}
+.prac-switch input{appearance:none;-webkit-appearance:none;width:2.4rem;height:1.35rem;border-radius:999px;background:#c7cfd9;position:relative;cursor:pointer;transition:background .15s;margin:0;flex:none}
+.prac-switch input::after{content:'';position:absolute;top:.15rem;left:.15rem;width:1.05rem;height:1.05rem;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:left .15s}
+.prac-switch input:checked{background:var(--teal-2)}.prac-switch input:checked::after{left:1.2rem}
+@media (max-width:760px){.prac-res-row{grid-template-columns:auto 1fr auto}.prac-res-row .url,.prac-res-row .ttl,.prac-res-row .note{grid-column:1/-1}}
 .prac-sec ul{margin:.2rem 0;padding-left:1.3rem}.prac-sec li{margin:.2rem 0}
 .prac-text p{margin:0 0 .45rem}
 .prac-kv{border-collapse:collapse;width:100%}.prac-kv th{text-align:left;width:11rem;color:var(--muted);font-weight:650;padding:.3rem .6rem .3rem 0;vertical-align:top;font-size:.9rem}.prac-kv td{padding:.3rem 0}.prac-kv tr{border-bottom:1px solid var(--line-2)}
@@ -6311,6 +6326,7 @@ function PE_buildDraft(f, meta) {
     diagrams: (Array.isArray(f.diagrams) ? f.diagrams : []).map(PE_normDiagram).filter(Boolean).slice(0, PE_LIMITS.diagrams).map(x => Object.assign({ id: PE_uid('dg'), approved: false, generated: true }, x)),
     images: [],
     placeholders: [],
+    resources: [],
     settings: Object.assign({}, PE_DEFAULT_SETTINGS, m.settings || {}),
     source: { engine: m.engine || 'rules', fileName: m.fileName || '', pages: m.pages || '', text: PE_str(m.text, 60000), generatedAt: now, flags: [], batchId: m.batchId || '', lineRange: m.lineRange || null }
   };
@@ -6352,7 +6368,7 @@ function PE_merge(a, b) {
   m.title = a.title + ' + ' + b.title; m.updatedAt = Date.now(); m.status = 'draft';
   ['gross', 'microscopic', 'differential', 'clinical'].forEach(k => { m[k] = j(a[k], b[k]); });
   ['objectives', 'keyFeatures', 'teachingPoints'].forEach(k => { m[k] = PE_list([].concat(a[k] || [], b[k] || []), 40); });
-  ['questions', 'viva', 'diagrams', 'images', 'placeholders'].forEach(k => { m[k] = [].concat(a[k] || [], b[k] || []); });
+  ['questions', 'viva', 'diagrams', 'images', 'placeholders', 'resources'].forEach(k => { m[k] = [].concat(a[k] || [], b[k] || []); });
   m.diagnosis = a.diagnosis && b.diagnosis && a.diagnosis !== b.diagnosis ? a.diagnosis + ' / ' + b.diagnosis : (a.diagnosis || b.diagnosis);
   m.diagnosisVerified = !!(a.diagnosisVerified && b.diagnosisVerified);
   m.source = Object.assign({}, a.source, { text: j(a.source && a.source.text, b.source && b.source.text), pages: [a.source && a.source.pages, b.source && b.source.pages].filter(Boolean).join(', '), flags: [].concat((a.source && a.source.flags) || [], (b.source && b.source.flags) || []) });
@@ -6401,6 +6417,23 @@ function PE_qc(d, ctx) {
 }
 function PE_qcSummary(items) { return { errors: items.filter(x => x.level === 'error').length, warnings: items.filter(x => x.level === 'warn').length, info: items.filter(x => x.level === 'info').length }; }
 
+/* ---------------------------------------------------------------- practical resources */
+/* Each practical can carry any number of teacher resources (virtual slides, videos, links). Every resource has an
+ * Active switch. ALL resources live in the private draft (teacher only); the published copy — the only thing a
+ * student's browser ever downloads — carries ONLY the active ones, so inactive resources never reach students. */
+const PE_RES_TYPES = {
+  slide: { label: 'Virtual Slide', group: '🔬 Virtual Slides', button: 'Open Virtual Slide' },
+  video: { label: 'YouTube Video', group: '🎥 Videos', button: '▶ Watch Video' },
+  resource: { label: 'Educational Resource', group: '📖 Educational Resources', button: 'Open Resource' },
+  other: { label: 'Other', group: '🔗 Other Resources', button: 'Open Link' }
+};
+function PE_resUrlOk(u) { return /^https?:\/\/[^\s]+$/i.test(String(u || '').trim()); }
+/** The resources a student may see: active, with a valid web link. Strips the teacher-only 'active' flag. */
+function PE_activeResources(list) {
+  return (Array.isArray(list) ? list : []).filter(r => r && r.active !== false && PE_resUrlOk(r.url))
+    .map(r => ({ id: String(r.id || ''), type: PE_RES_TYPES[r.type] ? r.type : 'other', title: PE_str(r.title, 160), url: String(r.url).trim(), note: PE_str(r.note, 300) }));
+}
+
 /* ---------------------------------------------------------------- publish snapshot (student-safe) */
 function PE_answersPublic(s) { return !!(s && (s.includeAnswers || s.showAnswersOnline || s.allowAnswerKey)); }
 function PE_contentHash(d) { const s = JSON.stringify([d.number, d.title, d.objectives, d.specimen, d.gross, d.microscopic, d.keyFeatures, d.diagnosis, d.differential, d.clinical, d.stain, d.magnification, d.teachingPoints, d.questions, d.viva, d.diagrams, d.images, d.settings]); let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); }
@@ -6417,6 +6450,7 @@ function PE_publishSnapshot(d, opts) {
     diagrams: d.diagrams.filter(x => x.approved).map(x => ({ id: x.id, kind: x.kind, title: x.title, caption: x.caption, spec: x.spec, replaceUrl: x.replaceUrl || '', replaceFileId: x.replaceFileId || '', generated: !x.replaceUrl })),
     questions: d.questions.map(q => withA ? { id: q.id, type: q.type, q: q.q, a: q.a, explanation: q.explanation } : { id: q.id, type: q.type, q: q.q }),
     viva: d.viva.map(q => withA ? { id: q.id, q: q.q, a: q.a } : { id: q.id, q: q.q }),
+    resources: PE_activeResources(d.resources),
     settings: s, answersIncluded: withA
   };
 }
@@ -7163,6 +7197,19 @@ const PracData = {
     return r;
   },
   async unpublish(d) { await deleteDoc('practicalpub', d.id, { history: false }); d.status = 'approved'; await this.save(d, { keepStatus: true }); },
+  /** Resources are managed live: saving them never resets approval, never publishes other unpublished edits, and —
+   *  if the practical is published — immediately replaces the published copy's resource list with the ACTIVE ones. */
+  async saveResources(id, resources) {
+    const stored = this.get(id); if (!stored) return { ok: false, error: 'Practical not found.' };
+    stored.resources = deepClone(resources || []);
+    const r = await this.save(stored, { keepStatus: true });
+    const pub = this.pub(id);
+    if (pub) {
+      const next = PE_activeResources(stored.resources);
+      if (JSON.stringify(next) !== JSON.stringify(pub.resources || [])) await saveDoc('practicalpub', id, Object.assign({}, pub, { resources: next }), { history: false, silent: true });
+    }
+    return r;
+  },
   qc(d, extra) { return PE_qc(d, Object.assign({ all: this.drafts, cfg: this.cfg() }, extra || {})); }
 };
 
@@ -7431,6 +7478,7 @@ const PracStudent = {
     const sp = p.specimen || {}; const rows = [['Organ / tissue', [sp.organ, sp.tissue].filter(Boolean).join(' — ')], ['Specimen type', sp.type], ['Anatomical site', sp.site], ['Condition', sp.condition]].filter(r => r[1]);
     if (rows.length || sp.text) page.appendChild(S('🧪 Specimen / Material', rows.length ? el('table', { class: 'prac-kv' }, rows.map(r => el('tr', null, el('th', null, r[0]), el('td', null, r[1])))) : null, sp.text ? P(sp.text) : null));
     if ((p.images || []).length) page.appendChild(S('📷 Real Images', pracFigureGrid(p.images)));
+    const res = pracResourcesNode(p.resources); if (res) page.appendChild(S('📚 Resources', res)); // only ACTIVE resources ever reach students; none → no section
     if (p.gross) page.appendChild(S('👁 Gross Description', P(p.gross)));
     if (p.microscopic) page.appendChild(S('🔬 Microscopic Description', P(p.microscopic), p.stain || p.magnification ? el('div', { class: 'small muted' }, [p.stain && 'Stain: ' + p.stain, p.magnification && 'Magnification: ' + p.magnification].filter(Boolean).join(' · ')) : null));
     if (p.keyFeatures.length) page.appendChild(S('⭐ Key Microscopic Features', el('ul', { class: 'prac-kf' }, p.keyFeatures.map(k => el('li', null, k)))));
@@ -7443,6 +7491,31 @@ const PracStudent = {
     if (p.teachingPoints.length) page.appendChild(S('💡 Teaching Points', el('ul', null, p.teachingPoints.map(t => el('li', null, t)))));
   }
 };
+/** Student resources: grouped by type, only groups that have something in them. Returns null when there is nothing
+ *  to show, so the page gets no empty "Resources" section at all. (Filtered again here as a safety net.) */
+function pracResourcesNode(list) {
+  const items = PE_activeResources(list); if (!items.length) return null;
+  const box = el('div', { class: 'prac-res' });
+  Object.keys(PE_RES_TYPES).forEach(type => {
+    const group = items.filter(r => r.type === type); if (!group.length) return;
+    const T = PE_RES_TYPES[type];
+    box.appendChild(el('div', { class: 'prac-res-group' }, el('h3', null, T.group),
+      group.map(r => el('div', { class: 'prac-res-item' },
+        el('div', null, r.title ? el('div', { class: 't' }, r.title) : null, r.note ? el('div', { class: 'n' }, r.note) : null),
+        el('button', { class: 'btn btn-sm btn-primary', onclick: () => pracOpenResource(r) }, T.button)))));
+  });
+  return box;
+}
+function pracOpenResource(r) {
+  const emb = r.type === 'video' ? videoEmbedUrl(r.url) : null;
+  if (emb) {
+    openModal({ title: '🎥 ' + (r.title || 'Video'), wide: true, body: el('div', null,
+      el('div', { class: 'media-video-wrap', style: 'border-radius:12px;overflow:hidden' }, el('iframe', { src: emb, title: r.title || 'Video', allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture', allowfullscreen: true })),
+      el('div', { class: 'small mt1' }, el('a', { href: r.url, target: '_blank', rel: 'noopener' }, 'Open on YouTube ↗'))) });
+    return;
+  }
+  if (PE_resUrlOk(r.url)) window.open(r.url, '_blank', 'noopener');
+}
 function pracFigureGrid(images) {
   const grid = el('div', { class: 'prac-figs' });
   images.forEach((im, i) => {
@@ -7768,6 +7841,8 @@ const PracEditor = {
     page.appendChild(card('diagrams', '🧩 Schematic diagrams', el('p', { class: 'small muted', style: 'margin-top:0' }, 'Generated schematics are clearly marked “SCHEMATIC — not a photo”. Only approved diagrams are shown to students.'), this.diagramsBox = el('div')));
     this.paintDiagrams();
     page.appendChild(card('teachingPoints', '💡 Teaching points / comments', listTa('teachingPoints', 4, 'One point per line')));
+    page.appendChild(card('resources', '📚 Resources — virtual slides, videos & links', this.resBox = el('div')));
+    this.paintResources();
     page.appendChild(card('questions', '❓ Practical questions', this.qBox = el('div')));
     page.appendChild(card('viva', '🗣 Viva questions', this.vBox = el('div')));
     this.paintQuestions();
@@ -7794,6 +7869,48 @@ const PracEditor = {
       box.appendChild(det);
     }
     this.paintActions();
+  },
+  /* ---- resources (Active / Inactive) ---- */
+  paintResources() {
+    const d = this.d; if (!Array.isArray(d.resources)) d.resources = [];
+    const box = clear(this.resBox); const list = d.resources;
+    const active = PE_activeResources(list).length;
+    const published = !!PracData.pub(d.id);
+    box.appendChild(el('p', { class: 'small muted', style: 'margin-top:0' },
+      'Add as many resources as you like. Students see ONLY resources switched to Active — inactive ones are not sent to students at all. ',
+      published ? el('b', null, 'This practical is published: resource changes go live for students immediately (no re-approval needed).') : 'They appear for students once the practical is published.'));
+    box.appendChild(el('div', { class: 'small', style: 'font-weight:700' }, list.length ? plural(list.length, 'resource') + ' · ' + active + ' active (visible to students)' : 'No resources yet.'));
+    list.forEach((r, i) => {
+      const on = el('input', { type: 'checkbox', checked: r.active !== false, 'aria-label': 'Active' });
+      on.addEventListener('change', () => { r.active = on.checked; this.saveResources(true); this.paintResources(); });
+      const type = el('select', { 'aria-label': 'Resource type' }, Object.keys(PE_RES_TYPES).map(k => el('option', { value: k, selected: (r.type || 'other') === k }, PE_RES_TYPES[k].label)));
+      type.addEventListener('change', () => { r.type = type.value; this.saveResources(); });
+      const ttl = el('input', { type: 'text', placeholder: 'Title (e.g. Coagulative necrosis — kidney)', value: r.title || '', class: 'ttl' });
+      ttl.addEventListener('input', () => { r.title = ttl.value; this.saveResources(); });
+      const url = el('input', { type: 'url', placeholder: 'https://…', value: r.url || '', class: 'url' });
+      const bad = el('div', { class: 'small', style: 'color:var(--bad);grid-column:1/-1' + (r.url && !PE_resUrlOk(r.url) ? '' : ';display:none') }, '⚠ Enter a full web link starting with https:// — a resource without a valid link is not shown to students.');
+      url.addEventListener('input', () => { r.url = url.value.trim(); bad.style.display = r.url && !PE_resUrlOk(r.url) ? '' : 'none'; this.saveResources(); });
+      const note = el('input', { type: 'text', placeholder: 'Short note for students (optional)', value: r.note || '', class: 'note' });
+      note.addEventListener('input', () => { r.note = note.value; this.saveResources(); });
+      const move = (dir) => { const j = i + dir; if (j < 0 || j >= list.length) return; [list[i], list[j]] = [list[j], list[i]]; this.saveResources(true); this.paintResources(); };
+      const tools = el('div', { class: 'row', style: 'gap:.25rem;flex-wrap:nowrap' },
+        el('button', { class: 'btn btn-xs', title: 'Move up', disabled: i === 0, onclick: () => move(-1) }, '▲'),
+        el('button', { class: 'btn btn-xs', title: 'Move down', disabled: i === list.length - 1, onclick: () => move(1) }, '▼'),
+        el('button', { class: 'btn btn-xs btn-danger', title: 'Delete resource', onclick: async () => { if (await confirmDialog('Delete the resource “' + (r.title || r.url || 'untitled') + '”?', { danger: true, okLabel: 'Delete' })) { list.splice(list.indexOf(r), 1); this.saveResources(true); this.paintResources(); } } }, '🗑'));
+      box.appendChild(el('div', { class: 'prac-res-row' + (r.active === false ? ' off' : '') },
+        el('label', { class: 'prac-switch', title: 'Visible to students when ON' }, on, el('span', null, r.active === false ? 'Inactive' : 'Active')),
+        type, ttl, url, tools, note, bad));
+    });
+    box.appendChild(el('button', { class: 'btn btn-sm mt1', onclick: () => { list.push({ id: uid('res'), type: 'slide', title: '', url: '', note: '', active: true }); this.paintResources(); const rows = box.querySelectorAll('.prac-res-row'); const last = rows[rows.length - 1]; if (last) { const u = last.querySelector('input.url'); if (u) u.focus(); } } }, '+ Add resource'));
+  },
+  _resTimer: null,
+  /** Resources save on their own (see PracData.saveResources) — immediately for switches/order, debounced for typing. */
+  saveResources(now) {
+    const id = this.d.id, snapshot = () => deepClone(this.d.resources || []);
+    clearTimeout(this._resTimer);
+    const run = async () => { const r = await PracData.saveResources(id, snapshot()); this.setSaveState(r && r.queued ? 'Saved on this device (will sync)' : 'Resources saved ✓'); };
+    this.setSaveState('Saving resources…');
+    if (now) run(); else this._resTimer = setTimeout(run, 700);
   },
   /* ---- real images ---- */
   paintImages() {
