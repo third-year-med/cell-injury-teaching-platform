@@ -892,6 +892,9 @@ body.pres-fs-on{overflow:hidden}
 .prac-slot{border:1px solid var(--line-2);border-radius:12px;padding:.7rem .8rem;margin-bottom:.7rem;background:#fbfdff}
 .prac-placeholder{display:flex;align-items:center;gap:.7rem;border:2px dashed #cbd6e2;border-radius:10px;padding:.8rem;margin-top:.5rem;color:var(--muted);font-size:.9rem}.prac-placeholder .big{font-size:1.8rem}
 .prac-img-card{display:flex;gap:.8rem;flex-wrap:wrap;border-top:1px solid var(--line-2);padding-top:.7rem;margin-top:.7rem}
+.prac-img-card.off{opacity:.6}.prac-img-card.off .prac-img-thumb{filter:grayscale(1)}
+.prac-img-group+.prac-img-group{margin-top:1rem}
+.prac-img-group h3{font-size:.95rem;margin:0 0 .5rem;color:var(--navy-2)}
 .prac-img-thumb{flex:0 0 190px;height:150px;background:#0b1220;border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .small.bad{color:var(--bad);font-weight:650}
 .prac-dg-card{border:1px solid var(--line);border-radius:12px;padding:.7rem;margin-bottom:.8rem;background:#fbfdff}.prac-dg-card.approved{border-color:#9dd8c9;background:#f4fbf9}
@@ -6402,7 +6405,7 @@ function PE_qc(d, ctx) {
   d.placeholders.forEach(p => { if (!filled.has(p.slot)) W('images', PE_IMAGE_SLOTS[p.slot] + ' — Teacher Upload: not uploaded yet.'); });
   d.images.forEach((im, i) => {
     const info = (c.imageInfo || {})[im.id] || {}; const w = im.w || info.w, h = im.h || info.h;
-    if (!im.caption || !im.caption.trim()) W('images', 'Image ' + (i + 1) + ' (' + (PE_IMAGE_SLOTS[im.slot] || 'image') + ') has no caption.');
+    if (im.active !== false && (!im.caption || !im.caption.trim())) W('images', 'Image ' + (i + 1) + ' (' + (PE_IMAGE_SLOTS[im.slot] || 'image') + ') has no caption.');
     if (w && h && Math.max(w, h) < PE_LOWRES_PX) W('images', 'Image ' + (i + 1) + ' is low resolution (' + w + '×' + h + ' px) — it will be printed small or may look blurry. Upload a larger original if you have one.');
     if (!w || !h) I('images', 'Image ' + (i + 1) + ': resolution unknown (linked image) — it is checked when the PDF is generated.');
     if (info.embeddable === false) W('images', 'Image ' + (i + 1) + ' is a web link that cannot be embedded in the PDF (it will appear as a link). Upload the file instead.');
@@ -6434,9 +6437,15 @@ function PE_activeResources(list) {
     .map(r => ({ id: String(r.id || ''), type: PE_RES_TYPES[r.type] ? r.type : 'other', title: PE_str(r.title, 160), url: String(r.url).trim(), note: PE_str(r.note, 300) }));
 }
 
+/* ---------------------------------------------------------------- real images: student-safe copy */
+/** One image as students receive it (the teacher-only 'active' switch is not included). */
+function PE_snapImage(im) { return { id: im.id, slot: im.slot, kind: im.kind || im.slot, url: im.url, fileId: im.fileId || '', caption: im.caption || '', annotation: im.annotation || '', stain: im.stain || '', magnification: im.magnification || '', w: im.w || 0, h: im.h || 0, marks: im.marks || [] }; }
+/** The Active switch is managed live (like resources), so it is left out of the "changes not published" hash. */
+function PE_imagesForHash(list) { return (list || []).map(im => { const o = Object.assign({}, im); delete o.active; return o; }); }
+
 /* ---------------------------------------------------------------- publish snapshot (student-safe) */
 function PE_answersPublic(s) { return !!(s && (s.includeAnswers || s.showAnswersOnline || s.allowAnswerKey)); }
-function PE_contentHash(d) { const s = JSON.stringify([d.number, d.title, d.objectives, d.specimen, d.gross, d.microscopic, d.keyFeatures, d.diagnosis, d.differential, d.clinical, d.stain, d.magnification, d.teachingPoints, d.questions, d.viva, d.diagrams, d.images, d.settings]); let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); }
+function PE_contentHash(d) { const s = JSON.stringify([d.number, d.title, d.objectives, d.specimen, d.gross, d.microscopic, d.keyFeatures, d.diagnosis, d.differential, d.clinical, d.stain, d.magnification, d.teachingPoints, d.questions, d.viva, d.diagrams, PE_imagesForHash(d.images), d.settings]); let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h.toString(16); }
 /** What students receive. Answers are included ONLY if the teacher enabled one of the answer options;
  *  source text, AI drafts, flags and unapproved diagrams never leave the teacher's side. */
 function PE_publishSnapshot(d, opts) {
@@ -6446,7 +6455,7 @@ function PE_publishSnapshot(d, opts) {
     objectives: d.objectives.slice(), specimen: { organ: d.specimen.organ, tissue: d.specimen.tissue, type: d.specimen.type, site: d.specimen.site, condition: d.specimen.condition, text: d.specimen.text },
     gross: d.gross, microscopic: d.microscopic, keyFeatures: d.keyFeatures.slice(), diagnosis: d.diagnosis, differential: d.differential, clinical: d.clinical,
     stain: d.stain, magnification: d.magnification, teachingPoints: d.teachingPoints.slice(),
-    images: d.images.filter(im => im.url).map(im => ({ id: im.id, slot: im.slot, kind: im.kind || im.slot, url: im.url, fileId: im.fileId || '', caption: im.caption || '', annotation: im.annotation || '', stain: im.stain || '', magnification: im.magnification || '', w: im.w || 0, h: im.h || 0, marks: im.marks || [] })),
+    images: d.images.filter(im => im.url && im.active !== false).map(PE_snapImage), // inactive images never reach students
     diagrams: d.diagrams.filter(x => x.approved).map(x => ({ id: x.id, kind: x.kind, title: x.title, caption: x.caption, spec: x.spec, replaceUrl: x.replaceUrl || '', replaceFileId: x.replaceFileId || '', generated: !x.replaceUrl })),
     questions: d.questions.map(q => withA ? { id: q.id, type: q.type, q: q.q, a: q.a, explanation: q.explanation } : { id: q.id, type: q.type, q: q.q }),
     viva: d.viva.map(q => withA ? { id: q.id, q: q.q, a: q.a } : { id: q.id, q: q.q }),
@@ -7193,10 +7202,28 @@ const PracData = {
     const snap = PE_publishSnapshot(d, { version, now });
     const r = await saveDoc('practicalpub', d.id, snap, { history: false });
     d.status = 'published'; d.publishedVersion = version; d.publishedAt = now; d.publishedHash = snap.hash;
+    d.publishedImages = d.images.filter(im => im.url).map(im => Object.assign(PE_snapImage(im), { active: im.active !== false })); // teacher-only: lets the Active switch work live
     await this.save(d, { keepStatus: true });
     return r;
   },
   async unpublish(d) { await deleteDoc('practicalpub', d.id, { history: false }); d.status = 'approved'; await this.save(d, { keepStatus: true }); },
+  /** Image Active switch — live, like resources: never resets approval, never publishes other pending edits. On a
+   *  published practical the students' copy is rebuilt from the images of the LAST PUBLISH (so a switch can never leak
+   *  a newly uploaded, not-yet-published image), keeping those whose switch is currently on. */
+  async setImageActive(id, imgId, active) {
+    const stored = this.get(id); if (!stored) return { ok: false, error: 'Practical not found.' };
+    const pub = this.pub(id);
+    if (pub && !Array.isArray(stored.publishedImages)) stored.publishedImages = (pub.images || []).map(x => Object.assign({}, x, { active: true })); // published before this feature
+    const im = (stored.images || []).find(x => x.id === imgId); if (im) im.active = !!active;
+    const r = await this.save(stored, { keepStatus: true });
+    if (pub) {
+      const cur = new Map((stored.images || []).map(x => [x.id, x]));
+      const next = stored.publishedImages.filter(x => { const c = cur.get(x.id); return c ? c.active !== false : x.active !== false; })
+        .map(x => { const o = Object.assign({}, x); delete o.active; return o; });
+      if (JSON.stringify(next) !== JSON.stringify(pub.images || [])) await saveDoc('practicalpub', id, Object.assign({}, pub, { images: next }), { history: false, silent: true });
+    }
+    return r;
+  },
   /** Resources are managed live: saving them never resets approval, never publishes other unpublished edits, and —
    *  if the practical is published — immediately replaces the published copy's resource list with the ACTIVE ones. */
   async saveResources(id, resources) {
@@ -7477,7 +7504,8 @@ const PracStudent = {
     if (p.objectives.length) page.appendChild(S('🎯 Learning Objectives', el('ul', null, p.objectives.map(o => el('li', null, o)))));
     const sp = p.specimen || {}; const rows = [['Organ / tissue', [sp.organ, sp.tissue].filter(Boolean).join(' — ')], ['Specimen type', sp.type], ['Anatomical site', sp.site], ['Condition', sp.condition]].filter(r => r[1]);
     if (rows.length || sp.text) page.appendChild(S('🧪 Specimen / Material', rows.length ? el('table', { class: 'prac-kv' }, rows.map(r => el('tr', null, el('th', null, r[0]), el('td', null, r[1])))) : null, sp.text ? P(sp.text) : null));
-    if ((p.images || []).length) page.appendChild(S('📷 Real Images', pracFigureGrid(p.images)));
+    const shownImgs = (p.images || []).filter(im => im.active !== false);
+    if (shownImgs.length) page.appendChild(S('📷 Real Images', pracImageGallery(shownImgs)));
     const res = pracResourcesNode(p.resources); if (res) page.appendChild(S('📚 Resources', res)); // only ACTIVE resources ever reach students; none → no section
     if (p.gross) page.appendChild(S('👁 Gross Description', P(p.gross)));
     if (p.microscopic) page.appendChild(S('🔬 Microscopic Description', P(p.microscopic), p.stain || p.magnification ? el('div', { class: 'small muted' }, [p.stain && 'Stain: ' + p.stain, p.magnification && 'Magnification: ' + p.magnification].filter(Boolean).join(' · ')) : null));
@@ -7515,6 +7543,13 @@ function pracOpenResource(r) {
     return;
   }
   if (PE_resUrlOk(r.url)) window.open(r.url, '_blank', 'noopener');
+}
+/** Student gallery: Gross / Microscopic / Other groups — only groups that have images, no headings when only one. */
+function pracImageGallery(images) {
+  const groups = [['gross', '🫙 Gross Images'], ['micro', '🔬 Microscopic Images'], ['additional', '🖼 Other Images']]
+    .map(([slot, label]) => [label, images.filter(im => (PE_IMAGE_SLOTS[im.slot] ? im.slot : 'additional') === slot)]).filter(g => g[1].length);
+  if (groups.length === 1) return pracFigureGrid(groups[0][1]);
+  return el('div', null, groups.map(([label, list]) => el('div', { class: 'prac-img-group' }, el('h3', null, label + ' (' + list.length + ')'), pracFigureGrid(list))));
 }
 function pracFigureGrid(images) {
   const grid = el('div', { class: 'prac-figs' });
@@ -7824,7 +7859,8 @@ const PracEditor = {
     page.appendChild(card('objectives', '🎯 Learning objectives', d.objectivesGenerated ? el('div', { class: 'msg info small' }, 'Not stated in the source — these objectives were generated from the practical’s own content. Please check them.') : null, listTa('objectives', 4, 'One objective per line')));
     const sp = d.specimen;
     page.appendChild(card('specimen', '🧪 Specimen / material', el('div', { class: 'field-row' }, field('Organ', txt(sp, 'organ')), field('Tissue', txt(sp, 'tissue')), field('Specimen type', txt(sp, 'type', 0, 'e.g. Gross specimen / H&E slide')), field('Anatomical site', txt(sp, 'site')), field('Pathological condition', txt(sp, 'condition'))), field('Notes', txt(sp, 'text', 2))));
-    page.appendChild(card('images', '📷 Real images — teacher upload', el('p', { class: 'small muted', style: 'margin-top:0' }, 'Add authentic photographs here (gross specimens, histology/microscopy, clinical, radiology, endoscopy). AI never creates or replaces these.'), this.imagesBox = el('div')));
+    page.appendChild(card('images', '📷 Real images — teacher upload', el('p', { class: 'small muted', style: 'margin-top:0' }, 'Add authentic photographs here (gross specimens, histology/microscopy, clinical, radiology, endoscopy) — as many as you need, several at once. AI never creates or replaces these. ',
+      el('b', null, 'Students see only images switched to Active.'), ' On a published practical the Active switch takes effect immediately; new or edited images reach students when you approve and publish the update.'), this.imagesBox = el('div')));
     this.paintImages();
     page.appendChild(card('gross', '👁 Gross description', txt(d, 'gross', 5, 'Leave empty if this practical has no gross specimen')));
     page.appendChild(card('microscopic', '🔬 Microscopic description', txt(d, 'microscopic', 7), el('div', { class: 'field-row' }, field('Stain', txt(d, 'stain', 0, 'e.g. H&E')), field('Magnification', txt(d, 'magnification', 0, 'e.g. ×100 / ×400')))));
@@ -7915,9 +7951,13 @@ const PracEditor = {
   /* ---- real images ---- */
   paintImages() {
     const d = this.d; const box = clear(this.imagesBox); this.imageInfo = this.imageInfo || {};
+    const SLOT_TITLES = { gross: 'Gross images', micro: 'Microscopic images', additional: 'Additional images' };
     Object.keys(PE_IMAGE_SLOTS).forEach(slot => {
       const imgs = d.images.filter(im => im.slot === slot); const ph = d.placeholders.find(p => p.slot === slot);
-      const group = el('div', { class: 'prac-slot' }, el('div', { class: 'row between' }, el('b', null, PE_IMAGE_SLOTS[slot] + ' — Teacher Upload'), this.uploadBtn(slot)));
+      const on = imgs.filter(im => im.active !== false).length;
+      const group = el('div', { class: 'prac-slot' }, el('div', { class: 'row between' },
+        el('b', null, SLOT_TITLES[slot] + (imgs.length ? ' — ' + imgs.length + ' · ' + on + ' active' : ' — Teacher Upload')),
+        el('span', { class: 'row', style: 'gap:.35rem' }, this.uploadBtn(slot), el('button', { class: 'btn btn-sm', type: 'button', onclick: () => this.addImageByLink(slot) }, '🔗 Add by link'))));
       if (ph && ph.hint) group.appendChild(el('div', { class: 'small muted' }, 'Suggested: ' + ph.hint));
       if (!imgs.length) group.appendChild(el('div', { class: 'prac-placeholder' }, el('span', { class: 'big' }, slot === 'gross' ? '🫙' : slot === 'micro' ? '🔬' : '🖼'), el('div', null, ph ? 'Placeholder — upload the real ' + (slot === 'gross' ? 'gross specimen photograph' : slot === 'micro' ? 'microscopy photograph' : 'image') + ' here.' : 'Optional.')));
       imgs.forEach(im => group.appendChild(this.imageCard(im)));
@@ -7930,12 +7970,19 @@ const PracEditor = {
       const files = Array.from(inp.files || []); inp.value = '';
       for (const f of files) {
         const t = toast('Uploading ' + f.name + '…', 'info', 60000);
-        try { const r = await PracImages.upload(f); this.d.images.push({ id: uid('img'), slot, kind: slot === 'additional' ? 'clinical' : slot, url: r.url, fileId: r.fileId, w: r.w, h: r.h, caption: '', annotation: '', stain: slot === 'micro' ? (this.d.stain || '') : '', magnification: '', marks: [] }); this.changed(); this.paintImages(); }
+        try { const r = await PracImages.upload(f); this.d.images.push({ id: uid('img'), slot, kind: slot === 'additional' ? 'clinical' : slot, url: r.url, fileId: r.fileId, w: r.w, h: r.h, caption: '', annotation: '', stain: slot === 'micro' ? (this.d.stain || '') : '', magnification: '', marks: [], active: true }); this.changed(); this.paintImages(); }
         catch (e) { toast('Upload failed: ' + e.message, 'bad', 6000); }
       }
       const box = document.getElementById('toasts'); if (box) box.querySelectorAll('.toast.info').forEach(x => { if (/^Uploading /.test(x.textContent)) x.remove(); });
     });
-    return el('span', null, inp, el('button', { class: 'btn btn-sm', type: 'button', onclick: () => inp.click() }, '⤒ Upload image'));
+    return el('span', null, inp, el('button', { class: 'btn btn-sm', type: 'button', onclick: () => inp.click() }, '⤒ Upload images'));
+  },
+  async addImageByLink(slot) {
+    const u = await promptDialog('Add image by link', 'Image web address (https://…)', { placeholder: 'https://…', okLabel: 'Add image', hint: 'Use only images you are allowed to reuse. Uploading the file is better for printed handouts.' });
+    if (u === null) return; const url = String(u).trim();
+    if (!/^https:\/\/[^\s]+$/i.test(url)) { toast('Please enter a full https:// image address.', 'bad'); return; }
+    this.d.images.push({ id: uid('img'), slot, kind: slot === 'additional' ? 'clinical' : slot, url, fileId: '', w: 0, h: 0, caption: '', annotation: '', stain: slot === 'micro' ? (this.d.stain || '') : '', magnification: '', marks: [], active: true });
+    this.changed(); this.paintImages();
   },
   imageCard(im) {
     const d = this.d;
@@ -7945,17 +7992,31 @@ const PracEditor = {
     const kinds = slotKinds(im.slot);
     const kindSel = el('select', { onchange: (e) => { im.kind = e.target.value; this.changed(false); } }, kinds.map(k => el('option', { value: k, selected: im.kind === k }, PE_IMAGE_KINDS[k])));
     const lowres = im.w && Math.max(im.w, im.h) < PE_LOWRES_PX;
-    const idx = d.images.indexOf(im);
-    return el('div', { class: 'prac-img-card' },
+    // reorder within the same group (Gross / Microscopic / Additional): swap with the neighbouring image of that group
+    const same = d.images.filter(x => x.slot === im.slot); const pos = same.indexOf(im);
+    const moveTo = (other) => { const a = d.images.indexOf(im), b = d.images.indexOf(other); d.images[a] = other; d.images[b] = im; this.changed(); this.paintImages(); };
+    const sw = el('input', { type: 'checkbox', checked: im.active !== false, 'aria-label': 'Active — visible to students' });
+    sw.addEventListener('change', async () => {
+      im.active = sw.checked; this.paintImages(); this.paintQc(); this.setSaveState('Saving…');
+      const r = await PracData.setImageActive(d.id, im.id, im.active);
+      const stored = PracData.get(d.id); if (stored && stored.publishedImages) d.publishedImages = deepClone(stored.publishedImages);
+      this.setSaveState(r && r.queued ? 'Saved on this device (will sync)' : (PracData.pub(d.id) ? 'Image visibility updated for students ✓' : 'All changes saved ✓'));
+    });
+    const slotSel = el('select', { 'aria-label': 'Image group', onchange: (e) => { im.slot = e.target.value; const k = slotKinds(im.slot); if (!k.includes(im.kind)) im.kind = k[0]; this.changed(); this.paintImages(); } },
+      Object.keys(PE_IMAGE_SLOTS).map(k => el('option', { value: k, selected: im.slot === k }, { gross: 'Gross', micro: 'Microscopic', additional: 'Additional' }[k])));
+    return el('div', { class: 'prac-img-card' + (im.active === false ? ' off' : '') },
       el('div', { class: 'prac-img-thumb' }, el('span', { class: 'prac-mk' }, img, pracMarksOverlay(im))),
       el('div', { class: 'stack', style: 'flex:1;min-width:0' },
-        el('div', { class: 'small ' + (lowres ? 'bad' : 'muted') }, im.w ? im.w + '×' + im.h + ' px' + (lowres ? ' — ⚠ low resolution: may print blurry' : ' ✓ print quality') : 'Linked image'),
-        el('div', { class: 'field-row' }, el('label', { class: 'field' }, 'Caption', inp('caption', 'e.g. Lipoma — cut surface')), el('label', { class: 'field' }, 'Image type', kindSel)),
+        el('div', { class: 'row between' },
+          el('label', { class: 'prac-switch', title: 'Visible to students when ON' }, sw, el('span', null, im.active === false ? 'Inactive — hidden from students' : 'Active')),
+          el('div', { class: 'small ' + (lowres ? 'bad' : 'muted') }, im.w ? im.w + '×' + im.h + ' px' + (lowres ? ' — ⚠ low resolution: may print blurry' : ' ✓ print quality') : 'Linked image')),
+        el('div', { class: 'field-row' }, el('label', { class: 'field' }, 'Title / caption (optional)', inp('caption', 'e.g. Lipoma — cut surface')), el('label', { class: 'field' }, 'Group', slotSel), el('label', { class: 'field' }, 'Image type', kindSel)),
         el('div', { class: 'field-row' }, el('label', { class: 'field' }, 'Stain', inp('stain', 'H&E')), el('label', { class: 'field' }, 'Magnification', inp('magnification', '×400')), el('label', { class: 'field' }, 'Annotation / note', inp('annotation', 'e.g. arrows: keratin pearls'))),
         el('div', { class: 'row' },
           el('button', { class: 'btn btn-xs', onclick: () => pracAnnotate(im, () => { this.changed(); this.paintImages(); }) }, '✎ Arrows & circles' + ((im.marks || []).length ? ' (' + im.marks.length + ')' : '')),
-          el('button', { class: 'btn btn-xs', disabled: idx <= 0, onclick: () => { d.images.splice(idx, 1); d.images.splice(idx - 1, 0, im); this.changed(); this.paintImages(); } }, '↑'),
-          el('button', { class: 'btn btn-xs', disabled: idx >= d.images.length - 1, onclick: () => { d.images.splice(idx, 1); d.images.splice(idx + 1, 0, im); this.changed(); this.paintImages(); } }, '↓'),
+          el('button', { class: 'btn btn-xs', title: 'Move up', disabled: pos <= 0, onclick: () => moveTo(same[pos - 1]) }, '↑'),
+          el('button', { class: 'btn btn-xs', title: 'Move down', disabled: pos >= same.length - 1, onclick: () => moveTo(same[pos + 1]) }, '↓'),
+          el('button', { class: 'btn btn-xs', title: 'Open larger', onclick: async () => { const src = await PracImages.src(im.url); if (src) openLightbox([{ src, caption: PE_figCaption(im) }], 0); } }, '🔍'),
           el('button', { class: 'btn btn-xs btn-danger', onclick: async () => { if (await confirmDialog('Remove this image from the practical?', { danger: true, okLabel: 'Remove' })) { d.images = d.images.filter(x => x !== im); this.changed(); this.paintImages(); } } }, 'Remove'))));
   },
   /* ---- diagrams ---- */
