@@ -1969,7 +1969,7 @@ const Backend = {
       try { data = JSON.parse(text); }
       catch (e) { return { ok: false, error: 'The backend did not return JSON — check the Web App URL and that it is deployed with access "Anyone".', code: 'badjson' }; }
       if (!this.online) { this.online = true; Bus.emit('backend-status'); }
-      if (data && (data.code === 'studentauth' || data.code === 'mustchange') && window.NEO_BOOT) window.NEO_BOOT.lock(data.error);
+      if (data && (data.code === 'studentauth' || data.code === 'mustchange' || data.code === 'examlock') && window.NEO_BOOT) window.NEO_BOOT.lock(data.error);
       return data;
     } catch (e) {
       this.online = false; this.lastError = (e && e.name === 'AbortError') ? 'timeout' : 'network';
@@ -14503,7 +14503,7 @@ startApp();
   async function check() {
     var s = stuSession(); if (!s) return NEO_BOOT.lock('Your session has ended — please sign in again.');
     var r = await post({ action: 'studentSession', stoken: s.token }, 20000);
-    if (r && (r.code === 'studentauth' || r.code === 'mustchange')) NEO_BOOT.lock(r.error);
+    if (r && (r.code === 'studentauth' || r.code === 'mustchange' || r.code === 'examlock')) NEO_BOOT.lock(r.error); // 1.7: an official exam started → close the course
   }
 
   var NEO_BOOT = window.NEO_BOOT = {
@@ -14534,6 +14534,7 @@ startApp();
       var r = await post({ action: 'studentSession', stoken: s.token });
       if (r && r.ok && r.role === 'student') { if (r.mustChange) return showChange(s, '', true); return start({ role: 'student', student: r.student, key: r.contentKey }); }
       if (r && (r.code === 'network' || r.code === 'badjson')) return showFatal(r.error, boot);
+      if (r && r.code === 'examlock') { try { SS && SS.setItem('neo_boot_msg', r.error); } catch (e) { } }
       clearStu();
     }
     var t = teacherTok();
