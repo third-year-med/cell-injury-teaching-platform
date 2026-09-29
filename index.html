@@ -1163,11 +1163,199 @@ body.neo-locked>*:not(#neo-boot){display:none!important}
 .nb-muted{font-size:.8rem;color:#6b7f93;margin:12px 0 0}
 .nb-modal{position:fixed;inset:0;background:rgba(10,25,40,.55);display:grid;place-items:center;padding:16px;z-index:10000}
 </style>
+<style id="ux-pathway-css">
+/* ==========================================================================
+   Teaching-first layer (Stage 2 + Stage 3 simplification). Existing tokens only.
+   Icon hierarchy: MAIN headings = line icon in a rounded box (.ux-ico.main /
+   .ux-ico.title); TOOLS = small plain glyph without a box (.ux-g).
+   ========================================================================== */
+/* ---------- Main navigation ---------- */
+.app-nav .nav-btn{gap:.5rem}
+.ux-ico{display:inline-grid;place-items:center;flex:0 0 auto}
+.ux-ico svg{width:18px;height:18px;display:block}
+.ux-ico.main{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#e6f2fb}
+.nav-btn.active .ux-ico.main{background:var(--teal-2);border-color:var(--teal-2);color:#fff}
+.nav-btn.nav-class .ux-ico.main{border-radius:50%}
+.nav-btn .nl-short{display:none}
+.nav-sep{flex:0 0 1px;align-self:stretch;margin:.6rem .5rem;background:rgba(255,255,255,.25)}
+.nav-btn:focus-visible,.area-pill:focus-visible,.area-back:focus-visible,.ux-unit-head:focus-visible,.ux-list a:focus-visible,.ux-map-i a:focus-visible,.ux-flow a:focus-visible,.ux-textbtn:focus-visible,.ux-teacher-link:focus-visible{outline:3px solid #f5c542;outline-offset:2px}
+@media (min-width:1101px){.app-nav .nav-sep{margin-left:auto}}
+.app-nav .nav-btn{position:relative}
+.ux-teacher-link{text-decoration:none}
+.ux-teacher-link svg{width:15px;height:15px}
+.ux-teacher-link.on{background:rgba(255,255,255,.25)}
+/* ---------- Tool bar (inside an activity only) ---------- */
+.area-bar{display:flex;align-items:center;gap:.8rem;max-width:1400px;margin:0 auto;padding:.75rem 1.2rem 0}
+.area-back{font-weight:700;color:var(--navy);text-decoration:none;white-space:nowrap;font-size:.92rem;padding:.3rem .2rem}
+.area-back:hover{color:var(--teal-ink)}
+.area-pills{display:flex;gap:.2rem;flex-wrap:wrap}
+.area-pill{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:999px;color:var(--ink-2);font-size:.86rem;font-weight:600;text-decoration:none;border:1px solid transparent}
+.area-pill:hover{background:#fff;border-color:var(--line)}
+.area-pill.on{background:#fff;border-color:var(--teal);color:var(--teal-ink)}
+.area-select{display:none;max-width:60vw}
+.ux-g{display:inline-block;min-width:1.2em;text-align:center;font-size:.95em;font-weight:700;color:var(--teal-ink);opacity:.85;line-height:1}
+/* Study Tools and Questions keep their screens; duplicated navigation is removed */
+body.ux2 #view-study .st-nav,body.ux2 #view-study .st-back{display:none}
+body.ux2 #view-revision .stat-strip{display:none}
+.st-grid2.ux-one{grid-template-columns:minmax(0,1fr)}
+/* ---------- Page structure: title → sentence → recommended action → content → options ---------- */
+.ux-page{max-width:980px}
+.ux-head{margin:.2rem 0 1rem}
+.ux-head h1{display:flex;align-items:center;gap:.6rem;margin:0;font-size:1.6rem;color:var(--navy)}
+.ux-ico.title{width:40px;height:40px;border-radius:12px;background:var(--navy);color:#fff}
+.ux-ico.title svg{width:22px;height:22px}
+.ux-head p{margin:.35rem 0 0;color:var(--muted)}
+.ux-rec{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:1rem 1.2rem;border-radius:var(--radius);background:linear-gradient(135deg,#fff,var(--teal-soft));border:1px solid #bfe7e2;margin:0 0 1.4rem}
+.ux-rec-k{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-ink);font-weight:750}
+.ux-rec-t{font-size:1.1rem;font-weight:700;color:var(--ink);margin:.1rem 0}
+.ux-page .ux-h2{font-size:1.05rem;margin:1.5rem 0 .6rem;color:var(--navy)}
+.ux-block{margin-top:.4rem}
+.ux-list{list-style:none;margin:0;padding:0;background:#fff;border:1px solid var(--line);border-radius:var(--radius)}
+.ux-list li+li{border-top:1px solid var(--line-2)}
+.ux-list a{display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;text-decoration:none;color:var(--ink)}
+.ux-list a:hover{background:#f8fbfd}
+.ux-list .ux-g{font-size:1.05rem;width:1.6em}
+.ux-list-b{display:flex;flex-direction:column;gap:.1rem;flex:1 1 auto;min-width:0}
+.ux-list-m{font-size:.8rem;font-weight:700;color:var(--teal-ink);white-space:nowrap}
+.ux-list a:after{content:"›";color:var(--faint);font-size:1.2rem}
+.ux-about{margin-top:1.2rem;border-top:1px solid var(--line);padding-top:.8rem}
+.ux-about>summary{cursor:pointer;font-weight:650;color:var(--navy)}
+.ux-about h3{font-size:.95rem;margin:1rem 0 .3rem}
+.ux-about ul,.ux-about ol{padding-left:1.2rem;margin:.2rem 0}
+.ux-textbtn{background:none;border:0;padding:0;font:inherit;color:var(--teal-ink);font-weight:650;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.ux-foot{margin-top:1rem}
+.ux-summary{margin:0 0 .6rem;color:var(--ink-2)}
+/* ---------- Learn: pathway ---------- */
+.ux-hero h1{font-size:1.9rem}
+.ux-hero-meta{display:flex;gap:1.1rem;flex-wrap:wrap;margin-top:.7rem;color:#dbe7f2;font-size:.9rem}
+.ux-hero-bar{max-width:480px;margin-top:.55rem;background:rgba(255,255,255,.18)}
+.ux-hero-actions{position:relative;z-index:1;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+.ux-hero .ux-textbtn{color:#cfe9f5}
+.ux-cont{flex-direction:column;align-items:flex-start;gap:.1rem;border-radius:16px;max-width:100%;text-align:left}
+.ux-cont-sub{display:block;font-weight:500;font-size:.8rem;opacity:.92;max-width:100%;white-space:normal}
+.ux-quick{display:flex;gap:1.2rem;flex-wrap:wrap;margin:.8rem .2rem 0;font-size:.9rem}
+.ux-quick a{color:var(--ink-2);text-decoration:none;font-weight:600;display:inline-flex;align-items:center;gap:.35rem}
+.ux-quick a:hover{color:var(--teal-ink)}
+.ux-map{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:.3rem;position:relative}
+.ux-map:before{content:"";position:absolute;left:6%;right:6%;top:23px;height:2px;background:var(--line);z-index:0}
+.ux-map-i a{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.3rem;text-decoration:none;color:var(--ink-2);padding:.2rem;border-radius:10px}
+.ux-map-i a:hover .ux-map-t{color:var(--teal-ink)}
+.ux-map-t{font-size:.76rem;font-weight:600;line-height:1.2}
+.ux-map-i.cur .ux-map-t{color:var(--navy);font-weight:800}
+.ux-map-i.cur .ux-ring{box-shadow:0 0 0 4px #f5c54266}
+.ux-ring{--p:0;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--teal) calc(var(--p)*1%),#e3eaf1 0);flex:0 0 auto}
+.ux-ring>span{width:36px;height:36px;border-radius:50%;background:#fff;display:grid;place-items:center;font-weight:800;color:var(--navy)}
+.ux-ring.sm{width:40px;height:40px}.ux-ring.sm>span{width:31px;height:31px;font-size:.9rem}
+.ux-flow{list-style:none;margin:.4rem 0 0;padding:0;display:flex;flex-wrap:wrap;gap:.3rem;align-items:stretch}
+.ux-flow li{display:flex;align-items:center}
+.ux-flow li:not(:last-child):after{content:"→";margin:0 .1rem 0 .3rem;color:var(--teal);font-weight:800}
+.ux-flow a{display:inline-flex;align-items:center;gap:.35rem;padding:.35rem .6rem;border-radius:10px;border:1px solid #b9e5e0;background:var(--teal-soft);color:var(--teal-ink);font-weight:650;font-size:.84rem;text-decoration:none}
+.ux-flow li.end a{background:#fff5e5;border-color:#f3d19c;color:#8a4b06}
+.ux-flow-n{display:inline-grid;place-items:center;width:1.3rem;height:1.3rem;border-radius:50%;background:#fff;font-size:.72rem;border:1px solid currentColor}
+.ux-unit{border:1px solid var(--line);border-radius:var(--radius);background:#fff;margin-top:.5rem;overflow:hidden}
+.ux-unit.done{border-color:#bfe6cf}
+.ux-unit-head{width:100%;display:flex;align-items:center;gap:.8rem;padding:.8rem 1rem;background:#fff;border:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.ux-unit-head:hover{background:#f8fbfd}
+.ux-unit-t{display:flex;flex-direction:column;gap:.05rem;flex:1 1 auto;min-width:0}
+.ux-unit-t b{font-size:1.02rem;color:var(--navy)}
+.ux-unit-k{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-ink);font-weight:750}
+.ux-chev{transition:transform .2s;color:var(--muted)}
+.ux-unit-head[aria-expanded="true"] .ux-chev{transform:rotate(180deg)}
+.ux-unit-body{padding:0 1rem 1rem;border-top:1px solid var(--line-2)}
+.ux-aim{margin:.8rem 0 .5rem;color:var(--ink-2)}
+.ux-big-in{margin:.3rem 0 .7rem}
+.ux-start{display:block;margin:.5rem 0;padding:.5rem .75rem;border-radius:10px;background:#fff8e1;border:1px solid #f1d68b;color:#6b4d00;font-weight:600;text-decoration:none}
+.ux-start.subtle{background:none;border:0;padding:.2rem 0;color:var(--teal-ink);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.ux-topics{list-style:none;margin:.4rem 0 0;padding:0}
+.ux-topic{display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--line-2)}
+.ux-topic:last-child{border-bottom:0}
+.ux-tmain{min-width:0;flex:1 1 auto}
+.ux-ttl{font-weight:700;color:var(--ink);text-decoration:none}
+.ux-ttl:hover{color:var(--teal-ink);text-decoration:underline}
+.ux-tsum{margin:.15rem 0 .35rem;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.ux-tmeta{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.ux-tact{flex:0 0 auto}
+.ux-objs{margin:.6rem 0 .2rem}
+.ux-objs summary{cursor:pointer;font-weight:650;color:var(--navy);font-size:.92rem}
+.ux-objs ul{margin:.4rem 0 .1rem;padding-left:1.2rem}
+.ux-objs li{margin:.25rem 0}
+/* ---------- Stages ---------- */
+.ux-stage{display:inline-flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.ux-stage-t{font-size:.82rem;font-weight:650;color:var(--ink-2)}
+.ux-steps{display:inline-flex;gap:3px;align-items:center}
+.ux-step{width:11px;height:11px;border-radius:3px;border:1px solid #c5d2de;background:#fff}
+.ux-step.on{background:var(--teal);border-color:var(--teal)}
+.ux-step.na{border-style:dashed;opacity:.5}
+.ux-chip{display:inline-block;font-size:.72rem;font-weight:700;padding:.1rem .5rem;border-radius:999px;background:var(--line-2);color:var(--ink-2);white-space:nowrap}
+.ux-chip.ok{background:var(--ok-soft);color:var(--ok)}
+.ux-chip.teal{background:var(--teal-soft);color:var(--teal-ink)}
+.ux-chip.warn{background:var(--warn-soft);color:var(--warn)}
+/* ---------- Apply / Progress ---------- */
+.ux-cases{margin:.7rem 0}
+.ux-case-list{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.3rem}
+.ux-case{font-size:.84rem;padding:.25rem .65rem;border-radius:999px;border:1px solid var(--line);text-decoration:none;color:var(--ink-2);background:#fff}
+.ux-case.done{border-color:#bfe6cf;color:var(--ok)}
+.ux-ptable{display:flex;flex-direction:column;font-size:.88rem;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:0 .8rem}
+.ux-prow{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.7fr) minmax(0,.5fr) minmax(0,.7fr) minmax(0,.9fr) minmax(0,1.1fr) minmax(0,1.1fr);gap:.6rem;align-items:center;padding:.55rem 0;border-top:1px solid var(--line-2)}
+.ux-prow.head{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;border-top:0}
+.ux-pt a{font-weight:650;color:var(--ink)}
+.ux-check{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:.5rem}
+.ux-check th,.ux-check td{text-align:left;padding:.35rem .4rem;border-bottom:1px solid var(--line-2)}
+/* ---------- Topic page ---------- */
+.ux-crumb{display:flex;align-items:center;flex-wrap:wrap;gap:.25rem;margin:0 0 .6rem;font-size:.88rem}
+.ux-crumb a{color:var(--teal-ink);font-weight:650}
+.ux-crumb-r{margin-left:auto}
+.ux-banner{display:block;margin:.8rem 0;padding:.65rem .9rem;border-radius:12px;background:#fff8e1;border:1px solid #f1d68b;color:#6b4d00;font-weight:650;text-decoration:none}
+.ux-nav-mid{font-size:.88rem;color:var(--muted);text-align:center}
+/* ---------- Responsive ---------- */
+@media (max-width:1100px){
+  .app-nav .nav-btn{flex-direction:column;gap:.15rem;padding:.4rem .5rem .45rem;font-size:.72rem;flex:1 1 0;min-width:0}
+  .nav-btn .nl-full{display:none}.nav-btn .nl-short{display:inline}
+  .nav-btn .nl{display:block;white-space:nowrap}
+  .nav-btn .nb{position:absolute;margin-left:22px;margin-top:-4px}
+  .nav-sep{margin:.5rem .1rem}
+  .ux-map{grid-template-columns:repeat(4,minmax(0,1fr));row-gap:.8rem}.ux-map:before{display:none}}
+@media (max-width:900px){
+  .ux-prow.head{display:none}
+  .ux-prow{grid-template-columns:repeat(2,minmax(0,1fr));padding:.75rem 0}
+  .ux-prow>span:first-child,.ux-prow>span:nth-child(2),.ux-prow>span:last-child{grid-column:1/-1}
+  .ux-prow>span[data-l]:before{content:attr(data-l) ": ";color:var(--muted);font-size:.78rem}}
+@media (max-width:640px){
+  .app-nav{padding:0 .2rem}
+  .app-nav .nav-btn{padding:.35rem .1rem .4rem;font-size:.62rem;border-radius:8px 8px 0 0}
+  .ux-ico.main{width:28px;height:28px}
+  .nav-sep{display:none}
+  .hdr-right .ux-teacher-link .lbl{display:none}
+  .area-bar{padding:.6rem .75rem 0;justify-content:space-between}
+  .area-pills{display:none}.area-select{display:block}
+  .ux-hero h1{font-size:1.45rem}
+  .ux-map{grid-template-columns:repeat(4,minmax(0,1fr))}.ux-map-t{font-size:.68rem}
+  .ux-topic{flex-direction:column;align-items:stretch}
+  .ux-tact{width:100%}
+  .ux-rec .btn{width:100%}
+  .ux-crumb-r{margin-left:0}
+  .ux-flow{flex-direction:column;align-items:flex-start}
+  .ux-flow li:not(:last-child):after{content:"↓"}
+  .ux-hero-actions .btn{width:100%}}
+/* Phones: two calm rows — the four learning areas, then the class activities — no horizontal scrolling */
+@media (max-width:480px){
+  .app-header{position:static}
+  .app-nav{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));padding:0 .3rem .35rem;gap:0}
+  .app-nav .nav-btn.nav-area{grid-column:span 3;font-size:.68rem}
+  .app-nav .nav-btn.nav-class{grid-column:span 4;flex-direction:row;justify-content:center;gap:.3rem;font-size:.68rem;padding:.3rem .1rem;border-radius:999px;border-bottom:0;margin-top:.2rem}
+  .app-nav .nav-btn.nav-class .ux-ico.main{width:22px;height:22px}
+  .app-nav .nav-btn.nav-class .ux-ico svg{width:13px;height:13px}
+  .app-nav .nav-btn.nav-class.active{background:rgba(255,255,255,.14)}
+  .app-nav .nav-class .nl-full{display:inline}.app-nav .nav-class .nl-short{display:none}
+  .app-nav .nav-class[data-view="live"] .nl-full{display:none}.app-nav .nav-class[data-view="live"] .nl-short{display:inline}}
+@media (prefers-reduced-motion:reduce){.ux-chev{transition:none}}
+@media print{.area-bar,.ux-crumb{display:none!important}}
+</style>
 </head>
 <body class="neo-locked">
 <header class="app-header" id="app-header">
   <div class="hdr-top">
-    <a class="brand" href="#/explain" id="brand" aria-label="Cell Injury and Cell Death — home">
+    <a class="brand" href="#/learn" id="brand" aria-label="Cell Injury and Cell Death — home">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 64 64"><defs><radialGradient id="bmg" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#8ef0e3"></stop><stop offset="1" stop-color="#0e9f9a"></stop></radialGradient><radialGradient id="bmc" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#ffb199"></stop><stop offset="1" stop-color="#d9553a"></stop></radialGradient></defs><circle cx="24" cy="25" r="13.5" fill="url(#bmg)"></circle><circle cx="24" cy="25" r="5.2" fill="#0b2a4a"></circle><circle cx="44" cy="18" r="7.5" fill="#b9f2ea"></circle><circle cx="44" cy="18" r="2.8" fill="#0b2a4a"></circle><circle cx="44" cy="41" r="11" fill="url(#bmc)"></circle><circle cx="45.5" cy="40" r="4.6" fill="#3b0d05"></circle><circle cx="41" cy="44" r="1.6" fill="#3b0d05"></circle><circle cx="24" cy="47" r="7" fill="#b9f2ea"></circle><circle cx="24" cy="47" r="2.6" fill="#0b2a4a"></circle></svg>
       </span>
@@ -1183,6 +1371,11 @@ body.neo-locked>*:not(#neo-boot){display:none!important}
 </header>
 <main id="app-main">
   <noscript><div class="page"><div class="card">This teaching platform needs JavaScript. Please open it in a modern browser (Chrome, Edge, Firefox or Safari).</div></div></noscript>
+  <nav class="area-bar hidden" id="area-bar" aria-label="Tools"></nav>
+  <section class="view" id="view-learn" aria-label="Learn — guided pathway"></section>
+  <section class="view" id="view-practise" aria-label="Practise"></section>
+  <section class="view" id="view-apply" aria-label="Apply"></section>
+  <section class="view" id="view-progress" aria-label="My progress"></section>
   <section class="view" id="view-explain" aria-label="Explanation"></section>
   <section class="view" id="view-revision" aria-label="Revision"></section>
   <section class="view" id="view-quiz" aria-label="Quiz"></section>
@@ -2094,6 +2287,7 @@ function mergeBackendContent(items, full) {
   // Re-apply writes still waiting in the offline queue so a sync never "undoes" unsent teacher edits.
   for (const op of Backend.pending()) applyDoc(op.collection, op.id, op.data, op.op === 'delete');
   saveAllState();
+  if (!full && !items.length) return; // nothing changed on the server → leave the current page alone
   rebuildQuestions();
   refreshAllContentViews();
 }
@@ -3503,6 +3697,10 @@ function SS_createService(A) {
    ========================================================================== */
 const Views = {};          // id -> { show(params), refresh() }
 const VIEW_LIST = [
+  { id: 'learn', label: 'Learn', icon: '🧭' },            // Stage 2: Start-here pathway (#/learn)
+  { id: 'practise', label: 'Practise', icon: '🧠' },     // Stage 2 hub
+  { id: 'apply', label: 'Apply', icon: '🩺' },           // Stage 2 hub
+  { id: 'progress', label: 'My Progress', icon: '📈' },  // Stage 2 hub
   { id: 'explain', label: 'Explanation', icon: '📘' },
   { id: 'revision', label: 'Revision', icon: '🧠' },
   { id: 'quiz', label: 'Assessments', icon: '📝' },
@@ -3518,7 +3716,8 @@ const Router = {
   current: null, params: [],
   parse() {
     const h = (location.hash || '').replace(/^#\/?/, '');
-    if (!h || h.startsWith('live=') || h.startsWith('att=')) return { view: 'explain', params: [] };
+    if (!h) return { view: 'learn', params: [] }; // Stage 2: the landing page is the guided pathway
+    if (h.startsWith('live=') || h.startsWith('att=')) return { view: 'explain', params: [] };
     const parts = h.split('/').map(decodeURIComponent);
     const view = VIEW_LIST.some(v => v.id === parts[0]) ? parts[0] : 'explain';
     return { view, params: parts.slice(1).filter(Boolean) };
@@ -3545,7 +3744,7 @@ function showView(view, params) {
     const sec = document.getElementById('view-' + v.id);
     if (sec) sec.classList.toggle('active', v.id === view);
   });
-  $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  uxSetNavActive(view, params || []); // Stage 2: Learn · Practise · Apply · My Progress
   const V = Views[view];
   if (V && V.show) {
     try { V.show(params || [], prev !== view); }
@@ -3567,6 +3766,7 @@ function refreshAllContentViews() {
 function buildNav() {
   const nav = document.getElementById('app-nav');
   clear(nav);
+  if (typeof uxBuildNav === 'function') { uxBuildNav(nav); initNavScrollShadows(nav); return; } // Stage 2
   VIEW_LIST.filter(v => !v.hidden).forEach(v => nav.appendChild(el('button', {
     class: 'nav-btn', dataset: { view: v.id }, type: 'button', title: v.label,
     onclick: () => Router.go(v.id, v.id === 'explain' ? (Store.get('ui_topic_v1') ? [Store.get('ui_topic_v1')] : []) : [])
@@ -3626,10 +3826,12 @@ function renderHeaderStatus() {
     const ls = Store.get('last_sync_v1', 0);
     fs.textContent = Backend.isConfigured() ? ('☁ Class server' + (ls ? ' · last sync ' + fmtDate(ls) : '')) : '💾 Local mode — progress is saved in this browser';
   }
+  if (typeof uxTeacherLink === 'function') box.appendChild(uxTeacherLink()); // Stage 3
   if (typeof LiveNotifyUI !== 'undefined') LiveNotifyUI.mountBell(box);
   const due = QStats.dueIds().length;
   setNavBadge('revision', due ? String(due) : '');
   setNavBadge('study', due ? String(due) : '');
+  setNavBadge('practise', due ? String(due) : ''); // Stage 2
 }
 Bus.on('auth-changed', () => { renderHeaderStatus(); refreshAllContentViews(); });
 Bus.on('backend-changed', () => renderHeaderStatus());
@@ -14272,6 +14474,739 @@ const LiveNotifyUI = {
 };
 Bus.on('live:notifs', () => LiveNotifyUI.paintBell());
 Bus.on('live:notify', (list) => LiveNotifyUI.onNew(list));
+
+/* ==========================================================================
+   12_pathway.js — teaching-first layer (Stage 2: 2026-09-29 · Stage 3 refinement: 2026-09-30) · Cell Injury port
+   Student areas: Learn · Practise · Apply · My Progress, then Assessment ·
+   Live Classroom · Attendance. The Teacher portal link sits in the header.
+   • #/learn            guided pathway (7 units + "Apply and integrate")
+   • #/learn/<unitId>   the pathway with that unit open
+   • #/learn/check      teacher-only pathway link check (uxValidatePathway)
+   • #/practise #/apply #/progress   hub pages ("choose an activity")
+   Learning stages are computed from records the platform already keeps.
+   Storage: ONE own key, pathway_visits_v1 ({ topicId: last visit time }).
+   Reads, never rewrites: progress_v1, qstats_v1, srs_v1, study_events_v1,
+   study_mistakes_v1, study_recall_v2, cases_v1, ui_topic_v1.
+   All earlier routes (#/explain, #/revision, #/study/…, #/quiz, #/present,
+   #/practical, #/cases, #/live, #/attendance, #/teacher) are unchanged.
+   ========================================================================== */
+
+/* ---------- 1 · Teaching units (edit here to re-map; run #/learn/check after) ---------- */
+/* Cell Injury & Cell Death (moduleKey cellinjury). Unit titles, aims and background are course-design text for the
+   lecturer to confirm — the medical content itself stays in the topics. */
+const UX_UNITS = [
+  { n: 1, id: 'u1', title: 'Foundations: the cell under stress', topics: ['t01'], bigPicture: true,
+    aim: 'Define cell injury, homeostasis and stress, list the types of cellular response, and see how the nature of the stimulus decides the response.' },
+  { n: 2, id: 'u2', title: 'Cellular adaptations', topics: ['t02'],
+    aim: 'Define hypertrophy, hyperplasia, atrophy and metaplasia, with their causes, mechanisms, morphology and significance.' },
+  { n: 3, id: 'u3', title: 'Causes and mechanisms of cell injury', topics: ['t03', 't04', 't05', 't06'],
+    start: { topic: 't06', section: 's0605', label: 'Start here: the whole mechanism on one page' },
+    aim: 'List the causes of cell injury and explain the key mechanisms — ATP depletion, mitochondrial damage, calcium, free radicals, membrane and DNA damage, and ischaemia–reperfusion.' },
+  { n: 4, id: 'u4', title: 'Reversible and irreversible injury', topics: ['t07'],
+    aim: 'Describe cellular swelling and fatty change, the ultrastructural changes, and the features that mark the point of no return.' },
+  { n: 5, id: 'u5', title: 'Cell death', topics: ['t08', 't09', 't10'],
+    also: [{ topic: 't07', section: 's0703' }],
+    aim: 'Describe necrosis and its patterns, gangrene, and apoptosis — its causes, pathways and morphology — and tell necrosis and apoptosis apart.' },
+  { n: 6, id: 'u6', title: 'Accumulations, pigments and degenerations', topics: ['t11', 't12', 't13', 't14'],
+    aim: 'Explain how substances accumulate in cells, and recognise fatty change, protein and glycogen accumulations, pigments and their special stains, hyaline change and mucoid degeneration.' },
+  { n: 7, id: 'u7', title: 'Calcification and cellular ageing', topics: ['t15', 't16'],
+    also: [{ topic: 't13', section: 's1304' }],
+    aim: 'Distinguish dystrophic from metastatic calcification, and explain the causes and mechanisms of cellular ageing.' }
+];
+const UX_FINALE = { id: 'u8', title: 'Apply and integrate', topics: ['t17'],
+  aim: 'Recognise the practical specimens and slides, then bring the whole module together.' };
+const UX_ALL_UNITS = UX_UNITS.concat([UX_FINALE]);
+/* The big-picture chain (Unit 1). Each step opens the place where it is taught. */
+const UX_FLOW = [
+  { label: 'Stress or injurious stimulus', topic: 't01', section: 's0101' },
+  { label: 'Adaptation', topic: 't02' },
+  { label: 'Cause of injury', topic: 't03' },
+  { label: 'Biochemical mechanisms', topic: 't06', section: 's0605' },
+  { label: 'Reversible injury', topic: 't07', section: 's0701' },
+  { label: 'Point of no return', topic: 't07', section: 's0703' },
+  { label: 'Cell death · necrosis or apoptosis', topic: 't10', section: 's1006', end: true }
+];
+/* What each mapped id is expected to be — the link check flags a mapping whose title no longer matches. */
+const UX_EXPECT_TOPIC = { t01: /overview|cellular responses/i, t02: /adaptation/i, t03: /causes/i, t04: /ATP|mitochondri|calcium/i, t05: /free radical|oxidative/i,
+  t06: /membrane|reperfusion/i, t07: /reversible/i, t08: /^necrosis/i, t09: /gangrene/i, t10: /apoptosis/i, t11: /lipid/i, t12: /protein|glycogen/i,
+  t13: /pigment/i, t14: /hyaline|mucoid/i, t15: /calcification/i, t16: /ageing|aging/i, t17: /practical/i };
+const UX_EXPECT_SECTION = { s0101: /definition/i, s0605: /overview of cell injury/i, s0701: /reversible cell injury/i, s0703: /point of no return/i,
+  s1006: /apoptosis vs necrosis/i, s1304: /lipofuscin/i };
+/* Suggested background — course-design text, not medical content (for the lecturer to confirm). */
+const UX_PREREQ = ['Normal cell structure and organelles: cell membrane, mitochondria, lysosomes, endoplasmic reticulum and nucleus', 'Basic cell biochemistry: ATP production and the use of oxygen', 'Normal histology and H&E staining of liver, kidney, heart and brain'];
+
+/* ---------- 2 · Icons: main headings (boxed line icons) vs tools (small plain glyphs) ---------- */
+const UX_SVG = {
+  learn: '<path d="M3 5.5c2.6-1 5.6-1 9 1 3.4-2 6.4-2 9-1v13c-2.6-1-5.6-1-9 1-3.4-2-6.4-2-9-1z"/><path d="M12 6.5v13"/>',
+  practise: '<path d="M4.5 11a7.5 7.5 0 0 1 13-4.6L19.5 8.5"/><path d="M19.5 4v4.5H15"/><path d="M19.5 13a7.5 7.5 0 0 1-13 4.6L4.5 15.5"/><path d="M4.5 20v-4.5H9"/>',
+  apply: '<path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-3"/><circle cx="20" cy="10" r="2"/>',
+  progress: '<path d="M4 20h16"/><path d="M7 16v-4"/><path d="M12 16V8"/><path d="M17 16V4"/>',
+  quiz: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5V3h6v1.5"/><path d="M9 13l2 2 4-4"/>',
+  live: '<circle cx="12" cy="12" r="2.2"/><path d="M8 8a5.7 5.7 0 0 0 0 8M16 8a5.7 5.7 0 0 1 0 8M5.2 5.2a9.6 9.6 0 0 0 0 13.6M18.8 5.2a9.6 9.6 0 0 1 0 13.6"/>',
+  attendance: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/><path d="M9 15.2l2 2 4-4"/>'
+};
+function uxIcon(key, cls) {
+  const box = el('span', { class: 'ux-ico ' + (cls || ''), 'aria-hidden': 'true' });
+  box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UX_SVG[key] + '</svg>';
+  return box;
+}
+function uxGlyph(g) { return el('span', { class: 'ux-g', 'aria-hidden': 'true' }, g); }
+
+/* ---------- 3 · Areas and their tools ---------- */
+const UX_AREAS = [
+  { id: 'learn', label: 'Learn', short: 'Learn', hint: 'Guided syllabus and topic explanations',
+    items: [['Pathway', '→', 'learn', []], ['Topics', '≡', 'explain', ['overview']], ['Glossary', 'Aa', 'study', ['glossary']], ['Presentation', '▭', 'present', []]] },
+  { id: 'practise', label: 'Practise', short: 'Practise', hint: 'Recall, sequencing, comparisons and questions',
+    items: [['Guided session', '▶', 'study', ['today']], ['Recall', '↻', 'study', ['recall']], ['Sequencing', '⇅', 'study', ['sequence']], ['Concept maps', '◎', 'study', ['connect']], ['Comparisons', '⇄', 'study', ['compare']], ['Questions', '?', 'revision', []], ['Spaced review', '◔', 'study', ['review']]] },
+  { id: 'apply', label: 'Apply', short: 'Apply', hint: 'Practical pathology and clinical cases',
+    items: [['Practical pathology', '◉', 'practical', []], ['Clinical cases', '✚', 'cases', []], ['Pathology challenge', '◆', 'study', ['challenge']]] },
+  { id: 'progress', label: 'My Progress', short: 'Progress', hint: 'Topic progress, mistakes and notes',
+    items: [['Mistakes', '!', 'study', ['mistakes']], ['Notes & bookmarks', '✎', 'study', ['notes']]] }
+];
+/* Separate group: class activities (not part of the learning pathway or its progress). */
+const UX_CLASS = [['quiz', 'Assessment', 'Assessment', 'Formal assessments set by your teacher'], ['live', 'Live Classroom', 'Live', 'Live classroom chat with your teacher and class'], ['attendance', 'Attendance', 'Attendance', 'Record your attendance with the code or QR shown in class']];
+
+function uxStudyRoute(p0) { const r = STUDY_ALIAS[p0 || ''] !== undefined ? STUDY_ALIAS[p0 || ''] : (p0 || 'today'); return r === 'blurt' ? 'recall' : r; }
+/** Which student area a route belongs to (null = outside the four learning areas). */
+function uxAreaOf(view, params) {
+  params = params || [];
+  if (view === 'learn' || view === 'explain' || view === 'present') return 'learn';
+  if (view === 'practise' || view === 'revision') return 'practise';
+  if (view === 'apply' || view === 'practical' || view === 'cases') return 'apply';
+  if (view === 'progress') return 'progress';
+  if (view === 'study') {
+    const r = uxStudyRoute(params[0]);
+    if (r === 'glossary') return 'learn';
+    if (r === 'challenge' || r === 'spot') return 'apply';
+    if (r === 'mistakes' || r === 'notes') return 'progress';
+    return 'practise';
+  }
+  return null;
+}
+function uxItemMatches(item, view, params) {
+  const [, , iv, ip] = item;
+  if (iv !== view) return false;
+  if (view !== 'study') return true;
+  const r = uxStudyRoute((params || [])[0]);
+  return r === ip[0] || (ip[0] === 'today' && r === 'session');
+}
+function uxHref(view, params) { return '#/' + [view].concat(params || []).map(encodeURIComponent).join('/'); }
+
+/* ---------- 4 · Main navigation + tool bar ---------- */
+function uxBuildNav(nav) {
+  const btn = (id, label, short, tip, isArea) => el('button', {
+    class: 'nav-btn ' + (isArea ? 'nav-area' : 'nav-class'), dataset: isArea ? { view: id, area: id } : { view: id }, type: 'button', title: tip, 'aria-label': label,
+    onclick: () => Router.go(id)
+  }, uxIcon(id, 'main'), el('span', { class: 'nl' }, el('span', { class: 'nl-full' }, label), el('span', { class: 'nl-short' }, short)), el('span', { class: 'nb hidden', id: 'nb-' + id }));
+  UX_AREAS.forEach(a => nav.appendChild(btn(a.id, a.label, a.short, a.label + ' — ' + a.hint, true)));
+  nav.appendChild(el('span', { class: 'nav-sep', 'aria-hidden': 'true' }));
+  UX_CLASS.forEach(([id, label, short, tip]) => nav.appendChild(btn(id, label, short, tip, false)));
+}
+/** Header utility link to the Teacher portal (kept out of the student navigation). */
+function uxTeacherLink() {
+  const on = Router.current === 'teacher';
+  return el('a', { class: 'status-chip ux-teacher-link' + (on ? ' on' : ''), href: '#/teacher', title: Auth.isTeacher() ? 'Open the Teacher portal' : 'Teacher sign-in', 'aria-label': Auth.isTeacher() ? 'Teacher portal' : 'Teacher sign-in' },
+    teacherIcon(), el('span', { class: 'lbl' }, Auth.isTeacher() ? 'Portal' : 'Teacher'));
+}
+function uxSetNavActive(view, params) {
+  const area = uxAreaOf(view, params);
+  $$('.nav-btn').forEach(b => {
+    const on = b.dataset.area ? b.dataset.area === area : (!area && b.dataset.view === view);
+    b.classList.toggle('active', on);
+    if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  document.body.classList.add('ux2');
+  const tl = document.querySelector('.ux-teacher-link'); if (tl) tl.classList.toggle('on', view === 'teacher');
+  uxRenderAreaBar(view, params, area);
+}
+/** Tool bar: only inside a tool (never on the four hub pages), so the category is not repeated. */
+function uxRenderAreaBar(view, params, area) {
+  const bar = document.getElementById('area-bar'); if (!bar) return;
+  const A = UX_AREAS.find(a => a.id === area);
+  clear(bar);
+  const isHub = view === area || view === 'present' || (view === 'learn');
+  if (!A || isHub) { bar.classList.add('hidden'); return; }
+  bar.classList.remove('hidden');
+  bar.setAttribute('aria-label', A.label + ' activities');
+  bar.appendChild(el('a', { class: 'area-back', href: uxHref(A.id) }, '‹ ', A.label));
+  const list = el('div', { class: 'area-pills' });
+  const sel = el('select', { class: 'area-select', 'aria-label': 'Switch ' + A.label.toLowerCase() + ' activity' });
+  A.items.forEach(it => {
+    const on = uxItemMatches(it, view, params);
+    list.appendChild(el('a', { class: 'area-pill' + (on ? ' on' : ''), href: uxHref(it[2], it[3]), 'aria-current': on ? 'page' : null }, uxGlyph(it[1]), it[0]));
+    sel.appendChild(el('option', { value: uxHref(it[2], it[3]), selected: on }, it[0]));
+  });
+  if (!A.items.some(it => uxItemMatches(it, view, params))) sel.insertBefore(el('option', { value: '', selected: true }, 'Choose…'), sel.firstChild);
+  sel.addEventListener('change', () => { if (sel.value) location.hash = sel.value; });
+  bar.appendChild(list); bar.appendChild(sel);
+}
+
+/* ---------- 5 · Learning evidence (computed from existing records) ---------- */
+const UXP = {
+  _visits: null,
+  visits() { if (!this._visits) this._visits = Store.get('pathway_visits_v1', {}) || {}; return this._visits; },
+  visit(tid) {
+    if (!tid || tid === 'overview') return; const v = this.visits();
+    if (v[tid] && Date.now() - v[tid] < 60000) return; // write at most once a minute per topic
+    v[tid] = Date.now(); Store.set('pathway_visits_v1', v);
+  },
+  unitOf(tid) { return UX_ALL_UNITS.find(u => u.topics.includes(tid)) || null; },
+  order() {
+    const vis = getTopics().map(t => t.id); const seen = new Set(); const out = [];
+    UX_ALL_UNITS.forEach(u => u.topics.forEach(id => { if (vis.includes(id) && !seen.has(id)) { seen.add(id); out.push(id); } }));
+    vis.forEach(id => { if (!seen.has(id)) out.push(id); });
+    return out;
+  },
+  extraTopics() { const mapped = new Set(UX_ALL_UNITS.flatMap(u => u.topics)); return getTopics().filter(t => !mapped.has(t.id)); },
+  /** One pass over the records → per-topic evidence (b) and what exists for each topic (res). */
+  snapshot() {
+    const a = StudyEngine.analytics();
+    const byT = {};
+    const B = t => byT[t] || (byT[t] = { explain: 0, seqcmp: 0, pracTried: 0, pracRight: 0, caseStarted: new Set(), caseDone: new Set(), caseGood: new Set(), vignTried: 0, vignRight: 0 });
+    const caseById = {}; CASES.forEach(c => { caseById[c.id] = c; });
+    StudyEngine.events.forEach(e => {
+      if (e.s === 'case') { const c = caseById[e.i]; if (c) (c.topics || []).forEach(t => B(t).caseStarted.add(c.id)); return; }
+      if (!e.p) return; const o = B(e.p);
+      if (e.s === 'recall' || e.s === 'blurt' || e.s === 'connect') o.explain++;
+      else if (e.s === 'sequence' || e.s === 'compare') o.seqcmp++;
+      else if ((e.s === 'practical' || e.s === 'pubprac') && (e.r === 'correct' || e.r === 'wrong')) { o.pracTried++; if (e.r === 'correct') o.pracRight++; }
+    });
+    const cr = Store.get('cases_v1', {}) || {};
+    CASES.forEach(c => { const r = cr[c.id]; if (!r) return; (c.topics || []).forEach(t => { const o = B(t); o.caseStarted.add(c.id); o.caseDone.add(c.id); if (r.of && r.best / r.of >= 0.5) o.caseGood.add(c.id); }); });
+    Object.entries(QStats.stats).forEach(([id, s]) => { const q = Q_BY_ID[id]; if (q && q.type === 'vignette') { const o = B(q.topic); o.vignTried++; if (s.last === 1) o.vignRight++; } });
+    const res = {}; const R = t => res[t] || (res[t] = { cases: 0, prac: 0, vign: 0, q: 0, seq: 0 });
+    CASES.forEach(c => (c.topics || []).forEach(t => R(t).cases++));
+    QUESTIONS.forEach(q => { if (State.revExcludeIds && State.revExcludeIds.includes(q.id)) return; R(q.topic).q++; if (q.type === 'vignette') R(q.topic).vign++; });
+    SEQUENCES.forEach(sq => { R(sq.topic).seq++; });
+    try { StudyEngine.challengeItems().forEach(it => { if (it.topic) R(it.topic).prac++; }); } catch (e) { /* practical data not loaded yet */ }
+    return { a, byT, res, visits: this.visits() };
+  },
+  /** Stages reflect what the student DID. A stage is n/a (null) only when the topic has nothing of that kind. */
+  topicState(t, snap) {
+    const st = Progress.topicStats(t);
+    const b = snap.byT[t.id] || { explain: 0, seqcmp: 0, pracTried: 0, pracRight: 0, caseStarted: new Set(), caseDone: new Set(), caseGood: new Set(), vignTried: 0, vignRight: 0 };
+    const R = snap.res[t.id] || { cases: 0, prac: 0, vign: 0, q: 0, seq: 0 };
+    const per = snap.a.per[t.id] || { n: 0, lastWrong: 0, level: 'nodata', mNew: 0, mRep: 0, due: 0 };
+    const answered = per.n || 0, lastRight = answered - (per.lastWrong || 0);
+    const mistakes = (per.mNew || 0) + (per.mRep || 0), due = per.due || 0;
+    const apply = {
+      available: R.cases + R.prac + R.vign,
+      attempted: b.caseStarted.size + b.pracTried + b.vignTried,
+      completed: b.caseDone.size + b.pracTried + b.vignTried,
+      successful: b.caseGood.size + b.pracRight + b.vignRight
+    };
+    const qNeed = R.q ? Math.min(5, R.q) : 0;
+    const anyActivity = answered + b.explain + b.seqcmp + apply.attempted > 0;
+    const m = [
+      ['Introduced', !!snap.visits[t.id] || st.done > 0 || anyActivity],
+      ['Read', st.total > 0 && st.done === st.total],
+      ['Explained', b.explain > 0],
+      ['Applied', apply.available ? apply.attempted > 0 : null],
+      ['Practised', R.q ? (answered >= qNeed || (answered >= Math.min(3, R.q) && b.seqcmp > 0)) : (R.seq ? b.seqcmp > 0 : null)]
+    ];
+    const consolidated = m[1][1] && m[2][1] && m[4][1] !== false && (!apply.available || apply.successful > 0)
+      && (!R.q || (answered >= Math.max(Math.min(3, R.q), qNeed) && lastRight / answered >= 0.8)) && !mistakes && !due;
+    m.push(['Consolidated', consolidated]);
+    let stage = 0; for (let i = 0; i < m.length; i++) { if (m[i][1] === false) break; stage = i + 1; }
+    const label = consolidated ? '' : per.level === 'weak' ? 'Needs another explanation' : per.level === 'developing' ? 'Developing understanding' : per.level === 'strong' ? 'Ready to apply' : '';
+    const tone = per.level === 'weak' ? 'warn' : per.level === 'strong' ? 'ok' : 'teal';
+    return { st, m, stage, stageLabel: UX_STAGES[stage], label, tone, mistakes, due, answered, lastRight, qTotal: R.q, explain: b.explain, seqcmp: b.seqcmp, apply };
+  },
+  firstUnread(t) { return (t.sections || []).find(s => !Progress.isRead(s.id)) || null; },
+  continueTarget() {
+    const order = this.order(); const last = Store.get('ui_topic_v1');
+    const lastT = last && getTopic(last) && order.includes(last) ? getTopic(last) : null;
+    if (lastT) { const s = this.firstUnread(lastT); if (s) return { topic: lastT, section: s }; }
+    const start = lastT ? order.indexOf(lastT.id) + 1 : 0;
+    for (let k = 0; k < order.length; k++) {
+      const t = getTopic(order[(start + k) % order.length]); if (!t) continue;
+      const s = this.firstUnread(t); if (s) return { topic: t, section: s };
+    }
+    return lastT ? { topic: lastT, section: null } : null;
+  },
+  minutes(t) {
+    let words = 0, figs = 0;
+    (t.sections || []).forEach(s => {
+      words += String(s.body || '').replace(/[#>*|`_\[\]!-]/g, ' ').split(/\s+/).filter(Boolean).length;
+      words += (s.keyPoints || []).join(' ').split(/\s+/).length;
+      (s.tables || []).forEach(tb => { words += JSON.stringify(tb.rows || []).split(/\s+/).length / 2; });
+      figs += (s.figures || []).length + (s.diagram ? 1 : 0);
+    });
+    return Math.max(5, Math.round((words / 100 + figs) / 5) * 5); // ≈100 words/min for dense medical text + 1 min per figure
+  },
+  objective(q) {
+    let s = String(q || '').trim();
+    const rules = [[/^write (?:a )?short (?:note|essay) on (?:the )?/i, 'Explain '], [/^give an account (?:of|on) (?:the )?/i, 'Explain '], [/^discuss /i, 'Explain '], [/^enumerate /i, 'List '], [/^mention /i, 'Describe ']];
+    for (const [re, rep] of rules) if (re.test(s)) { s = s.replace(re, rep); break; }
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  },
+  gotoSection(topic, section) { Router.go('explain', section ? [topic, section] : [topic]); },
+  recall(tid) { StudyRecall.topic = tid; StudyRecall.queue = null; StudyRecall.mode = 'cards'; Router.go('study', ['recall']); },
+  nextAction(t, s) {
+    if (!s.m[1][1]) { const u = this.firstUnread(t); return { label: s.st.done ? 'Continue reading' : 'Read topic', go: () => this.gotoSection(t.id, u && u.id) }; }
+    if (!s.m[2][1]) return { label: 'Practise recall', go: () => this.recall(t.id) };
+    if (s.m[3][1] === false) { const c = StudyEngine.casesForTopic(t.id)[0]; if (c) return { label: 'Try a case', go: () => Router.go('cases', [c.id]) }; }
+    if (s.m[4][1] === false) return { label: 'Answer questions', go: () => Router.go('revision', ['topic', t.id]) };
+    if (s.mistakes) return { label: 'Review mistakes', go: () => Router.go('study', ['mistakes']) };
+    return { label: 'Revisit', go: () => this.gotoSection(t.id) };
+  }
+};
+const UX_STAGES = ['Not started', 'Introduced', 'Read', 'Explained', 'Applied', 'Practised', 'Consolidated'];
+const UX_STAGE_HELP = {
+  Introduced: 'You opened the topic or did an activity on it.', Read: 'You opened every section of the topic.',
+  Explained: 'You tried to explain or recall it yourself (Recall, Blurting or a concept map).',
+  Applied: 'You attempted a clinical case, a clinical vignette or a practical image on it. Topics with none of these skip this stage.',
+  Practised: 'You answered at least 5 of its questions (or all, if it has fewer).',
+  Consolidated: 'Read, explained and practised; at least one application answered well; 80% or more of your latest answers correct; nothing due and no open mistakes.'
+};
+
+/* ---------- 6 · Pathway link check (teacher / developer) ---------- */
+function uxValidatePathway() {
+  const errors = [], warnings = [], links = [];
+  const all = getTopics(true), vis = getTopics();
+  const seen = {};
+  UX_ALL_UNITS.forEach(u => {
+    const live = u.topics.filter(id => vis.some(t => t.id === id));
+    if (!u.topics.length) errors.push(u.title + ': the unit has no topics.');
+    else if (!live.length) errors.push(u.title + ': every topic of this unit is missing or hidden, so the unit is empty.');
+    u.topics.forEach(id => {
+      const t = all.find(x => x.id === id);
+      (seen[id] = seen[id] || []).push(u.title);
+      if (!t) { errors.push(u.title + ': topic id ' + id + ' does not exist.'); return; }
+      if (!vis.includes(t)) warnings.push(u.title + ': topic ' + id + ' (' + t.title + ') is hidden by the teacher.');
+      if (UX_EXPECT_TOPIC[id] && !UX_EXPECT_TOPIC[id].test(t.title)) errors.push(u.title + ': ' + id + ' is now “' + t.title + '” — check that it still belongs to this unit.');
+      links.push({ from: u.title, to: id, what: 'Topic ' + topicNum(id) + ' · ' + t.title });
+    });
+  });
+  Object.entries(seen).forEach(([id, us]) => { if (us.length > 1) errors.push('Topic ' + id + ' is mapped to more than one unit: ' + us.join(', ') + '.'); });
+  vis.forEach(t => { if (!seen[t.id]) warnings.push('Topic ' + topicNum(t.id) + ' · ' + t.title + ' is in no unit (students see it under “More topics”).'); });
+  const checkLink = (from, topic, section) => {
+    const t = all.find(x => x.id === topic);
+    if (!t) { errors.push(from + ': topic ' + topic + ' does not exist.'); return; }
+    if (!section) { links.push({ from, to: topic, what: 'Topic ' + topicNum(topic) + ' · ' + t.title }); return; }
+    const s = (t.sections || []).find(x => x.id === section);
+    if (!s) { const f = findSection(section); errors.push(from + ': section ' + section + (f ? ' is in ' + f.topic.id + ', not ' + topic : ' does not exist') + '.'); return; }
+    if (UX_EXPECT_SECTION[section] && !UX_EXPECT_SECTION[section].test(s.heading)) errors.push(from + ': section ' + section + ' is now “' + s.heading + '” — check the link.');
+    links.push({ from, to: topic + '/' + section, what: 'Topic ' + topicNum(topic) + ' · ' + s.heading });
+  };
+  UX_FLOW.forEach((f, i) => checkLink('Big-picture step ' + (i + 1) + ' “' + f.label + '”', f.topic, f.section));
+  UX_ALL_UNITS.forEach(u => { if (u.start) checkLink(u.title + ' (start here)', u.start.topic, u.start.section); (u.also || []).forEach(x => checkLink(u.title + ' (related)', x.topic, x.section)); });
+  CASES.forEach(c => {
+    (c.topics || []).forEach(t => { if (!all.some(x => x.id === t)) errors.push('Case “' + c.title + '” refers to topic ' + t + ', which does not exist.'); });
+    if (!uxCaseUnit(c)) warnings.push('Case “' + c.title + '” is not listed under any unit in Apply.');
+  });
+  let items = []; try { items = StudyEngine.challengeItems(); } catch (e) { warnings.push('Practical images could not be read (' + e.message + ').'); }
+  const noTopic = items.filter(i => !i.topic || !all.some(x => x.id === i.topic));
+  if (noTopic.length) warnings.push(plural(noTopic.length, 'practical image') + ' could not be linked to a topic, so they do not count towards “Applied”: ' + noTopic.slice(0, 6).map(i => i.title || i.diagnosis).join('; ') + (noTopic.length > 6 ? '…' : '') + '.');
+  if (!all.some(t => t.id === 't17')) errors.push('The Apply page links to topic t17 (practical reading), which does not exist.');
+  return { errors, warnings, links, checked: new Date().toISOString() };
+}
+function uxCaseUnit(c) { const t = (c.topics || [])[0]; return t ? UXP.unitOf(t) : null; }
+
+/* ---------- 7 · Shared pieces ---------- */
+function uxStepper(s) {
+  const box = el('span', { class: 'ux-steps', role: 'img', 'aria-label': 'Stage: ' + s.stageLabel });
+  s.m.forEach(([name, ok]) => box.appendChild(el('span', { class: 'ux-step ' + (ok === null ? 'na' : ok ? 'on' : 'off'), title: name + (ok === null ? ' — not available for this topic' : ok ? ' ✓' : '') })));
+  return box;
+}
+function uxStageLine(s, withLabel) {
+  return el('span', { class: 'ux-stage' }, uxStepper(s), el('span', { class: 'ux-stage-t' }, s.stageLabel),
+    withLabel && s.label ? el('span', { class: 'ux-chip ' + s.tone }, s.label) : (s.label === 'Needs another explanation' ? el('span', { class: 'ux-chip warn' }, s.label) : null));
+}
+function uxUnitStats(u) {
+  const ts = u.topics.map(id => getTopic(id)).filter(t => t && !State.hiddenTopics.includes(t.id));
+  let d = 0, n = 0, min = 0; ts.forEach(t => { const s = Progress.topicStats(t); d += s.done; n += s.total; min += UXP.minutes(t); });
+  return { ts, done: d, total: n, pct: pct(d, n), minutes: min };
+}
+function uxFmtMin(m) { return m >= 60 ? (Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + (m % 60) + ' min' : '')) : m + ' min'; }
+function uxFlow() {
+  const box = el('ol', { class: 'ux-flow', 'aria-label': 'The cell’s response to injury, step by step' });
+  UX_FLOW.forEach((f, i) => box.appendChild(el('li', { class: f.end ? 'end' : '' },
+    el('a', { href: uxHref('explain', f.section ? [f.topic, f.section] : [f.topic]), title: 'Taught in Topic ' + topicNum(f.topic) + ' — ' + topicTitle(f.topic) },
+      el('span', { class: 'ux-flow-n' }, String(i + 1)), el('span', null, f.label)))));
+  return box;
+}
+function uxPageHead(icon, title, sentence) {
+  return el('header', { class: 'ux-head' }, el('h1', null, uxIcon(icon, 'title'), el('span', null, title)), el('p', null, sentence));
+}
+function uxRecommend(title, sub, label, go) {
+  return el('section', { class: 'ux-rec', 'aria-label': 'Recommended next step' },
+    el('div', null, el('div', { class: 'ux-rec-k' }, 'Recommended'), el('div', { class: 'ux-rec-t' }, title), sub ? el('div', { class: 'small muted' }, sub) : null),
+    el('button', { class: 'btn btn-primary btn-lg', onclick: go }, label));
+}
+function uxList(rows) {
+  return el('ul', { class: 'ux-list' }, rows.filter(Boolean).map(r => el('li', null, el('a', { href: r.href }, uxGlyph(r.g),
+    el('span', { class: 'ux-list-b' }, el('b', null, r.title), el('span', { class: 'small muted' }, r.sub)), r.meta ? el('span', { class: 'ux-list-m' }, r.meta) : null))));
+}
+
+/* ---------- 8 · LEARN — the pathway (#/learn, #/learn/u3, #/learn/check) ---------- */
+Views.learn = {
+  open: null,
+  show(params) {
+    if (params[0] === 'check') return this.renderCheck();
+    const u = params[0]; if (u && UX_ALL_UNITS.some(x => x.id === u)) this.open = u;
+    this.render();
+    if (u) setTimeout(() => { const n = document.getElementById('ux-' + u); if (n) window.scrollTo({ top: n.getBoundingClientRect().top + window.scrollY - 140, behavior: 'auto' }); }, 30);
+  },
+  refresh() { if ((Router.params || [])[0] === 'check') this.renderCheck(); else this.render(); },
+  render() {
+    const v = clear(document.getElementById('view-learn'));
+    const page = el('div', { class: 'page ux-page' }); v.appendChild(page);
+    const snap = UXP.snapshot(); const ov = Progress.overall();
+    const units = UX_ALL_UNITS.map(u => Object.assign({ u }, uxUnitStats(u)));
+    const totalMin = units.reduce((n, x) => n + x.minutes, 0);
+    const cont = UXP.continueTarget(); const started = ov.done > 0 || Object.keys(snap.visits).length > 0;
+    const curUnit = cont ? UXP.unitOf(cont.topic.id) : UX_UNITS[0];
+    if (!this.open) this.open = curUnit ? curUnit.id : 'u1';
+
+    // 1 · Title, one sentence, ONE primary action
+    const primary = started && cont
+      ? el('button', { class: 'btn btn-primary btn-lg ux-cont', onclick: () => UXP.gotoSection(cont.topic.id, cont.section && cont.section.id) }, 'Continue', el('span', { class: 'ux-cont-sub' }, 'Topic ' + topicNum(cont.topic.id) + ' · ' + (cont.section ? cont.section.heading : cont.topic.title)))
+      : el('button', { class: 'btn btn-primary btn-lg', onclick: () => UXP.gotoSection(UX_UNITS[0].topics[0]) }, 'Start learning');
+    page.appendChild(el('section', { class: 'topic-hero ux-hero', 'aria-labelledby': 'ux-welcome' },
+      el('div', { class: 'kicker' }, COURSE.chapter || ''),
+      el('h1', { id: 'ux-welcome' }, COURSE.title),
+      el('p', null, 'Learn the module step by step: seven units that follow the cell from stress and adaptation, through injury and death, to accumulations, calcification and ageing.'),
+      el('div', { class: 'ux-hero-meta' }, el('span', null, plural(getTopics().length, 'topic')), el('span', null, '≈ ' + uxFmtMin(totalMin) + ' of reading'), el('span', null, ov.pct + '% read')),
+      el('div', { class: 'pbar ux-hero-bar', role: 'progressbar', 'aria-valuenow': String(ov.pct), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-label': 'Sections read' }, el('span', { style: { width: ov.pct + '%' } })),
+      el('div', { class: 'ux-hero-actions' }, primary,
+        started ? el('button', { class: 'ux-textbtn', onclick: () => UXP.gotoSection(UX_UNITS[0].topics[0]) }, 'Start again from Unit 1') : null)));
+    page.appendChild(el('nav', { class: 'ux-quick', 'aria-label': 'Other ways to learn' },
+      el('a', { href: '#/explain/overview' }, uxGlyph('≡'), 'All topics'), el('a', { href: '#/study/glossary' }, uxGlyph('Aa'), 'Glossary'), el('a', { href: '#/present' }, uxGlyph('▭'), 'Presentation mode')));
+
+    // 2 · Where you are
+    const map = el('ol', { class: 'ux-map', 'aria-label': 'Your progress through the units' });
+    units.forEach(x => {
+      const done = x.total && x.done === x.total; const cur = curUnit && curUnit.id === x.u.id;
+      map.appendChild(el('li', { class: 'ux-map-i' + (done ? ' done' : '') + (cur ? ' cur' : '') },
+        el('a', { href: uxHref('learn', [x.u.id]), 'aria-label': (x.u.n ? 'Unit ' + x.u.n + ': ' : 'Final step: ') + x.u.title + ', ' + x.pct + '% read' + (cur ? ' (you are here)' : '') },
+          el('span', { class: 'ux-ring', style: '--p:' + x.pct }, el('span', null, x.u.n ? String(x.u.n) : '★')),
+          el('span', { class: 'ux-map-t' }, x.u.title))));
+    });
+    page.appendChild(el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, 'Your path'), map));
+
+    // 3 · Units
+    const unitsBox = el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, 'Units'));
+    UX_ALL_UNITS.forEach(u => unitsBox.appendChild(this.unitPanel(u, snap)));
+    const extra = UXP.extraTopics();
+    if (extra.length) unitsBox.appendChild(this.unitPanel({ id: 'ux-extra', title: 'More topics from your teacher', topics: extra.map(t => t.id), aim: 'Topics added to the course by your teacher.' }, snap));
+    page.appendChild(unitsBox);
+
+    // 4 · Optional details
+    page.appendChild(el('details', { class: 'ux-about' }, el('summary', null, 'About this module'),
+      el('h3', null, 'The big picture'), el('p', { class: 'small muted' }, 'Every topic fits somewhere on this chain. Select a step to open the section where it is taught.'), uxFlow(),
+      el('h3', null, 'By the end you should be able to'), el('ul', null, UX_UNITS.map(u => el('li', null, u.aim))),
+      el('h3', null, 'Suggested background'), el('ul', null, UX_PREREQ.map(p => el('li', null, p))),
+      el('h3', null, 'How to study each topic'), el('ol', null, el('li', null, 'Read the topic and its diagrams.'), el('li', null, 'Explain it from memory (Practise → Recall).'), el('li', null, 'Try a case or a practical image (Apply).'), el('li', null, 'Answer its questions and review what is due.'))));
+    page.appendChild(el('p', { class: 'small muted ux-foot' }, 'After a topic, you can practise it in ', el('a', { href: '#/practise' }, 'Practise'), ' or use it in ', el('a', { href: '#/apply' }, 'Apply'), '. These are optional — the pathway is the main route.'));
+    if (Auth.isTeacher()) page.appendChild(el('p', { class: 'small ux-foot' }, 'Teacher: ', el('a', { href: '#/learn/check' }, 'check the pathway links')));
+  },
+  unitPanel(u, snap) {
+    const S = uxUnitStats(u); const open = this.open === u.id;
+    const body = el('div', { class: 'ux-unit-body', id: 'ux-body-' + u.id, hidden: !open });
+    const head = el('button', { class: 'ux-unit-head', 'aria-expanded': String(open), 'aria-controls': 'ux-body-' + u.id, onclick: () => {
+      const on = head.getAttribute('aria-expanded') !== 'true'; head.setAttribute('aria-expanded', String(on)); body.hidden = !on; this.open = on ? u.id : null; Router.setQuiet('learn', on ? [u.id] : []);
+    } },
+      el('span', { class: 'ux-ring sm', style: '--p:' + S.pct, 'aria-hidden': 'true' }, el('span', null, u.n ? String(u.n) : '★')),
+      el('span', { class: 'ux-unit-t' }, el('span', { class: 'ux-unit-k' }, u.n ? 'Unit ' + u.n : (u.id === 'u8' ? 'Final step' : 'Extra')), el('b', null, u.title),
+        el('span', { class: 'small muted' }, plural(S.ts.length, 'topic') + ' · ≈ ' + uxFmtMin(S.minutes) + ' · ' + S.done + ' of ' + S.total + ' sections read')),
+      el('span', { class: 'ux-chev', 'aria-hidden': 'true' }, '▾'));
+    const panel = el('section', { class: 'ux-unit' + (S.total && S.done === S.total ? ' done' : ''), id: 'ux-' + u.id }, head, body);
+    if (u.aim) body.appendChild(el('p', { class: 'ux-aim' }, u.aim));
+    if (u.bigPicture) body.appendChild(el('div', { class: 'ux-big-in' }, el('div', { class: 'small muted' }, 'The whole module in one chain — select a step:'), uxFlow()));
+    if (u.start && getTopic(u.start.topic)) { const f = findSection(u.start.section); body.appendChild(el('a', { class: 'ux-start', href: uxHref('explain', [u.start.topic, u.start.section]) }, u.start.label + (f ? ' — ' + f.section.heading : ''))); }
+    const list = el('ol', { class: 'ux-topics' });
+    S.ts.forEach(t => {
+      const s = UXP.topicState(t, snap); const act = UXP.nextAction(t, s);
+      list.appendChild(el('li', { class: 'ux-topic' },
+        el('div', { class: 'ux-tmain' },
+          el('a', { class: 'ux-ttl', href: uxHref('explain', [t.id]) }, 'Topic ' + topicNum(t.id) + ' · ' + t.title),
+          t.summary ? el('div', { class: 'small muted ux-tsum' }, t.summary) : null,
+          el('div', { class: 'ux-tmeta' }, uxStageLine(s), el('span', { class: 'small muted' }, '≈ ' + UXP.minutes(t) + ' min'))),
+        el('button', { class: 'btn btn-sm ux-tact', onclick: act.go }, act.label)));
+    });
+    body.appendChild(list);
+    const objs = S.ts.flatMap(t => (t.syllabusQuestions || []).map(q => ({ q, t })));
+    if (objs.length) body.appendChild(el('details', { class: 'ux-objs' }, el('summary', null, 'Learning objectives (' + objs.length + ')'),
+      el('ul', null, objs.map(o => el('li', { title: 'Syllabus wording: ' + o.q }, UXP.objective(o.q), el('span', { class: 'small muted' }, ' — Topic ' + topicNum(o.t.id)))))));
+    (u.also || []).forEach(x => { const t = getTopic(x.topic); const f = findSection(x.section); if (t && f && f.topic.id === x.topic) body.appendChild(el('a', { class: 'ux-start subtle', href: uxHref('explain', [x.topic, x.section]) }, 'Related: ' + f.section.heading + ' (Topic ' + topicNum(x.topic) + ')')); });
+    return panel;
+  },
+  renderCheck() {
+    const v = clear(document.getElementById('view-learn'));
+    const page = el('div', { class: 'page ux-page' }); v.appendChild(page);
+    if (!Auth.isTeacher()) { page.appendChild(uxPageHead('learn', 'Pathway link check', 'This page is for teachers.')); page.appendChild(el('p', null, el('a', { class: 'btn', href: '#/teacher' }, 'Teacher sign-in'), ' ', el('a', { class: 'btn', href: '#/learn' }, 'Back to the pathway'))); return; }
+    const r = uxValidatePathway();
+    page.appendChild(uxPageHead('learn', 'Pathway link check', 'Checks every unit, big-picture step, related link, case and practical image used by the pathway against the current course content.'));
+    page.appendChild(el('div', { class: 'msg ' + (r.errors.length ? 'bad' : 'ok') }, r.errors.length ? plural(r.errors.length, 'problem') + ' to fix.' : '✓ No broken or mismatched links.'));
+    if (r.errors.length) page.appendChild(el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, 'Problems'), el('ul', null, r.errors.map(x => el('li', null, x)))));
+    if (r.warnings.length) page.appendChild(el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, 'Notes'), el('ul', null, r.warnings.map(x => el('li', null, x)))));
+    page.appendChild(el('details', { class: 'ux-about' }, el('summary', null, 'All links checked (' + r.links.length + ')'),
+      el('table', { class: 'ux-check' }, el('thead', null, el('tr', null, el('th', null, 'From'), el('th', null, 'Opens'))), el('tbody', null, r.links.map(l => el('tr', null, el('td', null, l.from), el('td', null, el('a', { href: '#/explain/' + l.to }, l.what))))))));
+    page.appendChild(el('p', { class: 'small muted' }, 'The mapping lives in UX_UNITS / UX_FLOW (module 12_pathway.js). Also available in the browser console: uxValidatePathway().'));
+  }
+};
+
+/* ---------- 9 · Hubs: PRACTISE · APPLY · MY PROGRESS ---------- */
+function uxTopicPicker(label, onPick) {
+  const sel = el('select', { 'aria-label': label, class: 'ux-pick' }, [el('option', { value: '' }, label + '…')].concat(UXP.order().map(id => getTopic(id)).filter(Boolean).map(t => el('option', { value: t.id }, topicNum(t.id) + '. ' + t.title))));
+  sel.addEventListener('change', () => { if (sel.value) onPick(sel.value); });
+  return sel;
+}
+Views.practise = {
+  show() { this.render(); }, refresh() { this.render(); },
+  render() {
+    const v = clear(document.getElementById('view-practise'));
+    const page = el('div', { class: 'page ux-page' }); v.appendChild(page);
+    const a = StudyEngine.analytics(); const cur = StudyEngine.session(); const t = StudyEngine.today();
+    page.appendChild(uxPageHead('practise', 'Practise', 'Short activities that help you remember and understand what you have read.'));
+    if (cur && !cur.done) page.appendChild(uxRecommend('Continue your guided session', 'Step ' + Math.min(cur.i + 1, cur.steps.length) + ' of ' + cur.steps.length, 'Continue', () => Router.go('study', ['session'])));
+    else page.appendChild(uxRecommend('Start a guided session', 'About ' + t.minutes + ' minutes · mixes what is due, your mistakes and topics you have read', 'Start', () => Router.go('study', ['today'])));
+    page.appendChild(el('h2', { class: 'ux-h2' }, 'Or choose an activity'));
+    page.appendChild(uxList([
+      { g: '↻', title: 'Recall', sub: 'Answer from memory, then check. Includes Blurting: explain a topic in your own words.', href: '#/study/recall', meta: a.dueR.length ? a.dueR.length + ' due' : '' },
+      { g: '⇅', title: 'Sequencing', sub: 'Put the steps of a process in order.', href: '#/study/sequence' },
+      { g: '◎', title: 'Concept maps', sub: 'See how the ideas of a topic connect, then complete the map.', href: '#/study/connect' },
+      { g: '⇄', title: 'Comparisons', sub: 'Tell look-alikes apart, such as apoptosis and necrosis.', href: '#/study/compare' },
+      { g: '?', title: 'Questions', sub: 'Check your understanding. Every answer is explained.', href: '#/revision' },
+      { g: '◔', title: 'Spaced review', sub: 'Questions that come back just before you would forget them.', href: '#/study/review', meta: a.dueQ.length ? a.dueQ.length + ' due' : '' }
+    ]));
+    page.appendChild(el('details', { class: 'ux-about' }, el('summary', null, 'Practise one topic'),
+      el('div', { class: 'row mt1' }, uxTopicPicker('Questions on a topic', tid => Router.go('revision', ['topic', tid])), uxTopicPicker('Recall on a topic', tid => UXP.recall(tid)))));
+  }
+};
+Views.apply = {
+  show() { this.render(); }, refresh() { this.render(); },
+  render() {
+    const v = clear(document.getElementById('view-apply'));
+    const page = el('div', { class: 'page ux-page' }); v.appendChild(page);
+    const cr = Store.get('cases_v1', {}) || {}; const tried = CASES.filter(c => cr[c.id]).length;
+    let ch = 0; try { ch = StudyEngine.challengeItems().length; } catch (e) { ch = 0; }
+    page.appendChild(uxPageHead('apply', 'Apply', 'Use what you have learned on real specimens and clinical cases.'));
+    const cont = UXP.continueTarget(); const unit = cont ? UXP.unitOf(cont.topic.id) : null;
+    const pool = CASES.filter(c => !cr[c.id]);
+    const next = pool.find(c => unit && (c.topics || []).some(x => unit.topics.includes(x))) || pool[0] || CASES[0];
+    if (next) page.appendChild(uxRecommend('Try a case: ' + next.title, 'Each step reveals the next part of the story — trigger, mechanism, tissue change, outcome.', 'Try a case', () => Router.go('cases', [next.id])));
+    page.appendChild(el('h2', { class: 'ux-h2' }, 'Or choose an activity'));
+    page.appendChild(uxList([
+      { g: '◉', title: 'Practical pathology', sub: 'Specimens and slides: what you see, the pattern, the diagnosis and why.', href: '#/practical' },
+      { g: '✚', title: 'Clinical cases', sub: 'Reason through a case one step at a time.', href: '#/cases', meta: tried + ' of ' + CASES.length + ' done' },
+      { g: '◆', title: 'Pathology challenge', sub: 'Identify, diagnose, explain and differentiate from images.', href: '#/study/challenge', meta: ch ? plural(ch, 'image') : '' },
+      getTopic('t17') ? { g: '≡', title: 'How to answer a practical', sub: 'Topic ' + topicNum('t17') + ': the practical specimens, one by one.', href: uxHref('explain', ['t17']) } : null
+    ]));
+    const box = el('details', { class: 'ux-about' }, el('summary', null, 'Cases by unit'));
+    UX_UNITS.forEach(u => {
+      const cs = CASES.filter(c => uxCaseUnit(c) === u); if (!cs.length) return; // each case once, under the unit of its main topic
+      box.appendChild(el('div', { class: 'ux-cases' }, el('b', null, 'Unit ' + u.n + ' · ' + u.title),
+        el('div', { class: 'ux-case-list' }, cs.map(c => el('a', { class: 'ux-case' + (cr[c.id] ? ' done' : ''), href: uxHref('cases', [c.id]) }, (cr[c.id] ? '✓ ' : '') + c.title)))));
+    });
+    const other = CASES.filter(c => !uxCaseUnit(c) || uxCaseUnit(c) === UX_FINALE);
+    if (other.length) box.appendChild(el('div', { class: 'ux-cases' }, el('b', null, UX_FINALE.title), el('div', { class: 'ux-case-list' }, other.map(c => el('a', { class: 'ux-case' + (cr[c.id] ? ' done' : ''), href: uxHref('cases', [c.id]) }, (cr[c.id] ? '✓ ' : '') + c.title)))));
+    page.appendChild(box);
+  }
+};
+Views.progress = {
+  show() { this.render(); }, refresh() { this.render(); },
+  render() {
+    const v = clear(document.getElementById('view-progress'));
+    const page = el('div', { class: 'page ux-page' }); v.appendChild(page);
+    const snap = UXP.snapshot(); const a = snap.a; const ov = Progress.overall();
+    const states = {}; getTopics().forEach(t => { states[t.id] = UXP.topicState(t, snap); });
+    const cons = Object.values(states).filter(s => s.m[5][1]).length; const due = a.dueQ.length + a.dueR.length;
+    page.appendChild(uxPageHead('progress', 'My Progress', 'How far you have come, from first reading to consolidation.'));
+    const cont = UXP.continueTarget();
+    if (a.activeMistakes.length) page.appendChild(uxRecommend('Review your mistakes', plural(a.activeMistakes.length, 'mistake') + ' waiting — fixing them is the fastest way to improve.', 'Review mistakes', () => Router.go('study', ['mistakes'])));
+    else if (due) page.appendChild(uxRecommend('Review what is due', plural(due, 'item') + ' ready for review.', 'Review now', () => Router.go('study', ['review'])));
+    else if (cont) page.appendChild(uxRecommend('Continue learning', 'Topic ' + topicNum(cont.topic.id) + ' · ' + (cont.section ? cont.section.heading : cont.topic.title), 'Continue', () => UXP.gotoSection(cont.topic.id, cont.section && cont.section.id)));
+    page.appendChild(el('p', { class: 'ux-summary' }, el('b', null, ov.pct + '%'), ' of sections read · ', el('b', null, cons + ' of ' + getTopics().length), ' topics consolidated · ', el('b', null, String(due)), ' due · ', el('b', null, String(a.activeMistakes.length)), ' mistakes'));
+    const table = (topics) => el('div', { class: 'ux-ptable', role: 'table', 'aria-label': 'Topic progress' },
+      el('div', { class: 'ux-prow head', role: 'row' }, ['Topic', 'Stage', 'Read', 'Explained', 'Applied', 'Questions', ''].map(h => el('span', { role: 'columnheader' }, h))),
+      topics.map(t => { const s = states[t.id]; const act = UXP.nextAction(t, s); const ap = s.apply;
+        return el('div', { class: 'ux-prow', role: 'row' },
+          el('span', { role: 'cell', class: 'ux-pt' }, el('a', { href: uxHref('explain', [t.id]) }, topicNum(t.id) + '. ' + t.title)),
+          el('span', { role: 'cell' }, uxStageLine(s, true)),
+          el('span', { role: 'cell', 'data-l': 'Read' }, s.st.done + '/' + s.st.total),
+          el('span', { role: 'cell', 'data-l': 'Explained' }, s.explain ? '✓ ' + s.explain : '—'),
+          el('span', { role: 'cell', 'data-l': 'Applied', title: ap.available ? 'Available ' + ap.available + ' · attempted ' + ap.attempted + ' · completed ' + ap.completed + ' · answered well ' + ap.successful : 'No case, vignette or practical image for this topic' }, ap.available ? (ap.attempted ? ap.attempted + ' tried' + (ap.successful ? ', ' + ap.successful + ' well' : '') : '0 of ' + ap.available) : 'n/a'),
+          el('span', { role: 'cell', 'data-l': 'Questions' }, s.qTotal ? s.answered + '/' + s.qTotal + (s.mistakes || s.due ? ' · ' + [s.mistakes ? plural(s.mistakes, 'mistake') : '', s.due ? s.due + ' due' : ''].filter(Boolean).join(', ') : '') : '—'),
+          el('span', { role: 'cell' }, el('button', { class: 'ux-textbtn', onclick: act.go }, act.label + ' ›')));
+      }));
+    UX_ALL_UNITS.forEach(u => {
+      const ts = u.topics.map(id => getTopic(id)).filter(t => t && states[t.id]); if (!ts.length) return;
+      page.appendChild(el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, (u.n ? 'Unit ' + u.n + ' · ' : '') + u.title), table(ts)));
+    });
+    const extra = UXP.extraTopics(); if (extra.length) page.appendChild(el('section', { class: 'ux-block' }, el('h2', { class: 'ux-h2' }, 'More topics'), table(extra)));
+    page.appendChild(el('details', { class: 'ux-about' }, el('summary', null, 'What do the stages mean?'),
+      el('ol', null, UX_STAGES.slice(1).map(n => el('li', null, el('b', null, n), ' — ' + UX_STAGE_HELP[n]))),
+      el('p', { class: 'small muted' }, 'Labels such as “Developing understanding” come from your most recent answers and change as you practise. Attendance and assessments are not part of these stages.')));
+    const hist = StudyEngine.history(14);
+    page.appendChild(el('details', { class: 'ux-about' }, el('summary', null, 'Recent activity (14 days)'),
+      hist.length ? el('div', { class: 'st-hist' }, hist.slice(0, 7).map(h => el('div', null, el('b', null, h.label), el('ul', null, h.items.map(i => el('li', null, i)))))) : el('p', { class: 'small muted' }, 'Your activities will appear here.')));
+    page.appendChild(uxList([
+      { g: '!', title: 'Mistakes', sub: 'Questions and activities to try again.', href: '#/study/mistakes', meta: a.activeMistakes.length ? String(a.activeMistakes.length) : '' },
+      { g: '✎', title: 'Notes & bookmarks', sub: plural(Notes.marks.length, 'bookmark') + ' · ' + plural(Object.keys(Notes.notes).length, 'note'), href: '#/study/notes' }
+    ]));
+  }
+};
+
+/* ---------- 10 · Wrappers around existing views (no engine change) ---------- */
+(function () {
+  const E = Views.explain;
+  if (E) { const main0 = E.renderMain; E.renderMain = function () { const r = main0.apply(this, arguments); try { uxDecorateTopic(this); } catch (e) { console.warn('pathway decoration skipped', e); } return r; }; }
+  // Study Tools: the page title names the activity; the duplicate tab row, back button and repeated Study-home blocks are removed.
+  const ST_TITLES = { today: ['Guided session', 'A short session built from what is due, your mistakes and topics you have read.'], recall: ['Recall', 'Answer from memory first, then check.'],
+    sequence: ['Sequencing', 'Put the steps of a process in the right order.'], connect: ['Concept maps', 'See how the ideas connect, then complete the map.'], compare: ['Comparisons', 'Tell similar processes and lesions apart.'],
+    mistakes: ['Mistakes', 'Try again what you got wrong. An item is cleared after two correct answers in a row.'], review: ['Spaced review', 'Questions due for review today.'],
+    challenge: ['Pathology challenge', 'Identify → diagnose → explain → differentiate.'], glossary: ['Glossary', 'Key terms of the module.'], notes: ['Notes & bookmarks', 'Your notes and bookmarked sections.'] };
+  const ST_SAME = { recall: ['recall'], sequence: ['sequence', 'sequencing'], connect: ['connect', 'concept maps', 'concept map'], compare: ['compare', 'comparisons'], mistakes: ['mistakes', 'my mistakes'], review: ['review due', 'spaced review'], glossary: ['glossary'], notes: ['notes & bookmarks', 'notes and bookmarks', 'my notes'], challenge: ['pathology challenge'] };
+  const S = Views.study;
+  if (S) { const r0 = S.render; S.render = function () { const r = r0.apply(this, arguments); try {
+    const page = this.page; if (!page || this.tab === 'session') return r;
+    const h = page.querySelector('.st-head'); const tt = ST_TITLES[this.tab];
+    if (h && tt) { const h1 = h.querySelector('h1'), p = h.querySelector('p'); if (h1) h1.textContent = tt[0]; if (p) p.textContent = tt[1]; }
+    // an inner heading that only repeats the page title is dropped (e.g. “🧠 Recall” under “Recall”)
+    const same = (ST_SAME[this.tab] || []).concat(tt ? [tt[0].toLowerCase()] : []);
+    const norm = x => x.toLowerCase().replace(/[^a-z& ]/g, '').replace(/\s+/g, ' ').trim();
+    page.querySelectorAll('.st-body h2, .st-body h3').forEach(x => { if (same.includes(norm(x.textContent))) x.remove(); });
+    if (this.tab === 'today') {
+      page.querySelectorAll('.st-kicker').forEach(k => { if (/Today/.test(k.textContent)) k.remove(); });
+      const modesH = [...page.querySelectorAll('.st-h2')].find(x => /Study modes/.test(x.textContent)); if (modesH) modesH.remove();
+      page.querySelectorAll('.st-modes, .st-challenge').forEach(x => x.remove());
+      const grids = page.querySelectorAll('.st-grid2'); if (grids[1]) grids[1].remove();
+      if (grids[0] && grids[0].children[1]) { grids[0].children[1].remove(); grids[0].classList.add('ux-one'); }
+    }
+  } catch (e) { console.warn('study tidy skipped', e); } return r; }; }
+  const Rv = Views.revision;
+  if (Rv) { const r0 = Rv.render; Rv.render = function () { const r = r0.apply(this, arguments); try {
+    const v = document.getElementById('view-revision'); const h1 = v.querySelector('.page-head h1'), p = v.querySelector('.page-head p');
+    if (h1) h1.textContent = 'Questions'; if (p) p.textContent = 'Check your understanding. Every answer comes with an explanation.';
+    const b = [...v.querySelectorAll('.page-head button')].find(x => /due cards/.test(x.textContent)); if (b && b.firstChild && b.firstChild.nodeType === 3) b.firstChild.nodeValue = 'Only questions due for review';
+  } catch (e) { console.warn('questions tidy skipped', e); } return r; }; }
+})();
+function uxDecorateTopic(E) {
+  const main = E.main; if (!main) return;
+  if (E.topicId === 'overview') {
+    const hero = main.querySelector('.topic-hero');
+    if (hero) hero.after(el('a', { class: 'ux-banner', href: '#/learn' }, 'New here? Follow the guided pathway — seven units in teaching order ›'));
+    return;
+  }
+  const t = getTopic(E.topicId); if (!t) return;
+  UXP.visit(t.id);
+  const u = UXP.unitOf(t.id); const order = UXP.order(); const i = order.indexOf(t.id);
+  const snap = UXP.snapshot(); const s = UXP.topicState(t, snap);
+  const hero = main.querySelector('.topic-hero');
+  if (hero) {
+    const inU = u ? u.topics.filter(id => getTopic(id) && !State.hiddenTopics.includes(id)) : [];
+    hero.before(el('nav', { class: 'ux-crumb', 'aria-label': 'Where you are in the pathway' },
+      el('a', { href: '#/learn' }, 'Pathway'), el('span', { 'aria-hidden': 'true' }, ' › '),
+      u ? el('a', { href: uxHref('learn', [u.id]) }, (u.n ? 'Unit ' + u.n + ' · ' : '') + u.title) : el('span', null, 'More topics'),
+      u && inU.length > 1 ? el('span', { class: 'muted' }, ' · topic ' + (inU.indexOf(t.id) + 1) + ' of ' + inU.length) : null,
+      el('span', { class: 'ux-crumb-r' }, uxStageLine(s))));
+  }
+  const nav = main.querySelector('.topic-nav');
+  if (nav && i >= 0) {
+    const prevT = getTopic(order[i - 1]), nextT = getTopic(order[i + 1]);
+    const nu = nextT ? UXP.unitOf(nextT.id) : null;
+    clear(nav);
+    nav.appendChild(prevT ? el('button', { class: 'btn', onclick: () => Router.go('explain', [prevT.id]) }, '‹ ' + prevT.title) : el('a', { class: 'btn', href: '#/learn' }, '‹ Pathway'));
+    const c = StudyEngine.casesForTopic(t.id)[0];
+    nav.appendChild(el('span', { class: 'ux-nav-mid' }, 'After reading: ',
+      el('button', { class: 'ux-textbtn', onclick: () => UXP.recall(t.id) }, 'Practise recall'), ' · ',
+      el('button', { class: 'ux-textbtn', onclick: () => Router.go('revision', ['topic', t.id]) }, 'Questions'),
+      c ? [' · ', el('button', { class: 'ux-textbtn', onclick: () => Router.go('cases', [c.id]) }, 'Try a case')] : null));
+    nav.appendChild(nextT ? el('button', { class: 'btn btn-primary', onclick: () => Router.go('explain', [nextT.id]) },
+      (nu && u && nu.id !== u.id ? (nu.n ? 'Unit ' + nu.n + ': ' : 'Next: ') : 'Next: ') + nextT.title + ' ›') : el('a', { class: 'btn btn-primary', href: '#/practise' }, 'Practise what you learned ›'));
+  }
+}
+window.uxValidatePathway = uxValidatePathway;
+
+/* ---------- 11 · Reading stability (2026-09-30 bug fix) ----------
+   Cause (confirmed): every background sync — on returning to the tab (e.g. from a
+   WebPath link, which opens a new tab) and every 90 s — ran mergeBackendContent →
+   refreshAllContentViews → Views.explain.refresh(), which clears and rebuilds the
+   whole lesson and the sidebar, then restores scroll with window.scrollTo (smooth,
+   because html{scroll-behavior:smooth}). The engine patch skips the refresh when the
+   sync returned nothing; the wrappers below skip it when nothing the student sees has
+   changed, and keep the reading position when a real change must be shown.
+   A mobile browser may also discard the background tab and reload it; the reading
+   position (topic, open sections, anchor) is kept in sessionStorage and restored. */
+function uxExplainSig(E) {
+  const tid = E.topicId, t = tid && tid !== 'overview' ? getTopic(tid) : null;
+  const parts = [tid, E.editMode ? 1 : 0, Auth.isTeacher() ? 1 : 0];
+  if (t) { parts.push(JSON.stringify(t)); (t.sections || []).forEach(s => parts.push(JSON.stringify(sectionMedia(s.id)))); }
+  else parts.push(getTopics().map(x => x.id + ':' + x.title + ':' + (x.summary || '') + ':' + (x.sections || []).length).join('|'), QUESTIONS.length, CASES.length);
+  return parts.join('§');
+}
+function uxSideSig(E) { return [E.topicId, E.editMode ? 1 : 0, Auth.isTeacher() ? 1 : 0, getTopics().map(t => t.id + ':' + t.title + ':' + (t.icon || '') + ':' + (t.sections || []).length).join('|')].join('§'); }
+/** The element the student is reading: the first section card (or the topic header) still visible below the sticky header. */
+function uxReadingAnchor(root) {
+  if (!root) return null;
+  const hdr = document.getElementById('app-header'); const top = hdr && getComputedStyle(hdr).position === 'sticky' ? hdr.getBoundingClientRect().bottom : 0;
+  const cands = root.querySelectorAll('.section-card, .topic-hero, .ux-crumb');
+  for (const n of cands) { const r = n.getBoundingClientRect(); if (r.bottom > top + 4) return { id: n.id || null, cls: n.id ? null : n.className.split(' ')[0], top: Math.round(r.top) }; }
+  return null;
+}
+function uxRestoreAnchor(a, fallbackY) {
+  let n = null;
+  if (a) n = a.id ? document.getElementById(a.id) : document.querySelector('#view-explain .' + a.cls);
+  if (n) window.scrollTo({ top: Math.max(0, window.scrollY + n.getBoundingClientRect().top - a.top), behavior: 'instant' });
+  else if (fallbackY != null) window.scrollTo({ top: fallbackY, behavior: 'instant' });
+}
+(function () {
+  const E = Views.explain; if (!E) return;
+  const side0 = E.renderSide, main1 = E.renderMain, refresh0 = E.refresh, show0 = E.show, focus0 = E.focusSection;
+  E.renderSide = function () { const r = side0.apply(this, arguments); this._uxSideSig = uxSideSig(this); return r; };
+  const secSigs = (E2) => { const t = getTopic(E2.topicId); const o = {}; if (t) (t.sections || []).forEach(sc => { o[sc.id] = JSON.stringify(sc) + JSON.stringify(sectionMedia(sc.id)); }); return o; };
+  const frame = (E2) => { const t = getTopic(E2.topicId); return t ? JSON.stringify(Object.assign({}, t, { sections: (t.sections || []).map(sc => sc.id) })) + (E2.editMode ? 1 : 0) + (Auth.isTeacher() ? 1 : 0) : ''; };
+  E.renderMain = function () { const r = main1.apply(this, arguments); this._uxMainSig = uxExplainSig(this); this._uxSecSigs = secSigs(this); this._uxFrame = frame(this); return r; };
+  /** Targeted update: when only the content of some sections changed, replace just those cards (open state kept). */
+  E._uxPatchSections = function () {
+    const t = getTopic(this.topicId); if (!t || this.topicId === 'overview' || frame(this) !== this._uxFrame) return false;
+    const now = secSigs(this), old = this._uxSecSigs || {}; const tnum = getTopics().findIndex(x => x.id === t.id) + 1;
+    (t.sections || []).forEach((sc, i) => { if (now[sc.id] === old[sc.id]) return; const card = document.getElementById('sec-' + sc.id); if (card) card.replaceWith(this.sectionCard(t, sc, i, tnum)); });
+    this._uxSecSigs = now; this._uxMainSig = uxExplainSig(this); return true;
+  };
+  E.refresh = function () {
+    if (!this.mounted || (this.topicId !== 'overview' && !getTopic(this.topicId))) return refresh0.apply(this, arguments);
+    const mainSame = uxExplainSig(this) === this._uxMainSig, sideSame = uxSideSig(this) === this._uxSideSig;
+    if (mainSame && sideSame) return; // nothing the student sees has changed → leave the lesson alone
+    const inSearch = document.activeElement && document.activeElement.closest && document.activeElement.closest('.ex-search');
+    const a = uxReadingAnchor(this.main), y = window.scrollY;
+    if (mainSame) this.renderSide(); else if (sideSame && this._uxPatchSections()) { /* only the changed section cards were replaced */ } else refresh0.apply(this, arguments);
+    uxRestoreAnchor(a, y); // instant, never animated
+    if (inSearch) { const i = document.querySelector('#view-explain .ex-search input'); if (i) { i.focus(); try { i.setSelectionRange(i.value.length, i.value.length); } catch (e) { /* ignore */ } } }
+  };
+  // Reload after a discarded background tab: put the student back where they were reading.
+  let restoreChecked = false;
+  E.focusSection = function () { if (this._uxSkipFocus) return; return focus0.apply(this, arguments); };
+  E.show = function (params) {
+    const saved = restoreChecked ? null : Store.sget('read_pos_v1', null); restoreChecked = true;
+    const r = show0.apply(this, arguments);
+    if (saved && saved.topic === this.topicId && Date.now() - saved.t < 12 * 3600e3 && (saved.open || []).length) {
+      this._uxSkipFocus = true;
+      saved.open.forEach(id => { const f = findSection(id); if (f && f.topic.id === this.topicId) this.toggleSection(id, true); });
+      Router.setQuiet('explain', (params || []).filter(Boolean));
+      requestAnimationFrame(() => { uxRestoreAnchor(saved.anchor, saved.y); setTimeout(() => { this._uxSkipFocus = false; }, 300); });
+    }
+    return r;
+  };
+})();
+function uxSaveReadingPos() {
+  const E = Views.explain;
+  if (Router.current !== 'explain' || !E || !E.main || !E.topicId || E.topicId === 'overview') return;
+  Store.sset('read_pos_v1', { topic: E.topicId, open: [...E.open], anchor: uxReadingAnchor(E.main), y: Math.round(window.scrollY), t: Date.now() });
+}
+(function () {
+  let t = 0;
+  window.addEventListener('scroll', () => { if (!t) t = setTimeout(() => { t = 0; uxSaveReadingPos(); }, 300); }, { passive: true });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') uxSaveReadingPos(); });
+  window.addEventListener('pagehide', uxSaveReadingPos);
+  // The browser's own restore runs before the lesson exists (or before sign-in in the protected build) and lands in
+  // the wrong place; the app restores the position itself. Turned back on after start-up for ordinary Back/Forward.
+  try { if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; window.addEventListener('load', () => setTimeout(() => { history.scrollRestoration = 'auto'; }, 1000)); if (document.readyState === 'complete') setTimeout(() => { history.scrollRestoration = 'auto'; }, 1000); } } catch (e) { /* ignore */ }
+})();
+/* The pathway pages rebuild on refresh too — keep the scroll position (instant). */
+['learn', 'practise', 'apply', 'progress'].forEach(id => { const V = Views[id]; if (!V) return; const r0 = V.refresh; V.refresh = function () { const y = window.scrollY; const r = r0.apply(this, arguments); window.scrollTo({ top: y, behavior: 'instant' }); return r; }; });
 
 /* ==========================================================================
    99_boot.js — start-up
